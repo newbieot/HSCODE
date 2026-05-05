@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v5.4 - PosIND Batam</title>
+    <title>AI Automation HS Code v5.5 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -55,7 +55,7 @@
         }
         .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
 
-        /* Progress UI Enhanced */
+        /* Progress UI */
         #searchOverlay { display: none; margin: 40px 0; }
         .progress-container { width: 100%; background: #E2E8F0; border-radius: 20px; height: 14px; margin: 20px 0; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
@@ -89,7 +89,6 @@
 
         <div class="api-card">
             <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);" id="apiKeyLabel">🔑 Status API Key: Belum Diset</label>
-            <p style="font-size: 12px; color: #64748B; margin: 4px 0 10px 0;">Silakan masukkan Gemini API Key yang baru Anda buat. Sistem hanya akan menyimpannya di memori browser lokal Anda secara aman.</p>
             <div class="api-input-group">
                 <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Baru Anda">
                 <button class="btn-api" onclick="saveApiKey()">Simpan</button>
@@ -99,7 +98,7 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">Otomatis mengisi kode BTKI 8-digit dengan Turbo Batching & Multi-Route Recovery</p>
+            <p style="font-size: 14px; color: #94A3B8;">Otomatis mengisi 8-digit BTKI dengan Auto-Retry (Anti Server Down)</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
@@ -114,7 +113,7 @@
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics AI Automation System v5.4 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v5.5 • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
@@ -155,7 +154,7 @@
         alert("🗑️ Memori kunci dihapus! Silakan masukkan kunci baru Anda.");
     }
 
-    // Database Offline Komplet (Instan & 0 Kuota)
+    // Database Offline Komplet (Instan)
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -182,7 +181,7 @@
         const file = e.target.files[0];
         if(!file) return;
         if(!geminiApiKey) {
-            alert("⚠️ Harap masukkan dan simpan API Key Anda terlebih dahulu di kolom atas!");
+            alert("⚠️ Harap masukkan dan simpan API Key Anda terlebih dahulu!");
             return;
         }
         originalName = file.name;
@@ -225,7 +224,6 @@
         let unknownItems = [];
         let rowMap = {};
 
-        // Tahap 1: Pencocokan Lokal Offline (Sangat Cepat)
         for(let r = headerIdx + 1; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
             let nama = String(rows[r][colNama] || "").trim().toUpperCase();
@@ -248,12 +246,11 @@
             }
         }
 
-        // Tahap 2: AI Turbo Mode (Batch Besar dengan Indikator Real-Time)
         const total = unknownItems.length;
         document.getElementById('progressCounter').innerText = `0 dari ${total}`;
         
         if (total > 0) {
-            const batchSize = 25; // TURBO: Proses hingga 25 barang sekaligus
+            const batchSize = 20; 
             
             for (let i = 0; i < total; i += batchSize) {
                 const batch = unknownItems.slice(i, i + batchSize);
@@ -263,9 +260,9 @@
                 document.getElementById('statusMessage').innerText = `MENGHUBUNGI AI UNTUK KELOMPOK BARANG...`;
                 document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
                 
-                await new Promise(resolve => setTimeout(resolve, 50)); // Jeda anti-freeze browser
+                await new Promise(resolve => setTimeout(resolve, 50));
 
-                const results = await callAIBulletproof(batch);
+                const results = await callAIWithRetry(batch);
                 
                 if (results) {
                     for (let item in results) {
@@ -278,7 +275,7 @@
                         }
                     }
                 } else {
-                    showWarning("⚠️ Proses AI gagal pada beberapa item karena kunci bermasalah/kuota habis. Hasil sementara dapat diunduh.");
+                    showWarning("⚠️ Proses AI terhenti. Server Google API sedang mengalami gangguan (Error 503). Hasil yang berhasil dianalisis offline dapat diunduh.");
                     break; 
                 }
             }
@@ -287,8 +284,8 @@
         updateUIFinal(rows, wb);
     }
 
-    // Algoritma Multi-Endpoint, Multi-Model, dan Regex Extractor
-    async function callAIBulletproof(items) {
+    // Algoritma Pintar: Auto-Retry Khusus untuk Server Sibuk (503/500)
+    async function callAIWithRetry(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
 Tentukan kode HS 8-digit BTKI yang paling tepat untuk barang kargo berikut. 
@@ -297,36 +294,50 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        const models = ["gemini-2.5-flash", "gemini-1.5-flash"];
+        // Fokus pada rute paling stabil untuk menghindari Error 400
         const versions = ["v1beta", "v1"];
+        const maxRetries = 2; // Maksimal coba ulang 2 kali per rute jika server sibuk
         
-        for (let model of models) {
-            for (let version of versions) {
-                const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${geminiApiKey}`;
+        for (let version of versions) {
+            const url = `https://generativelanguage.googleapis.com/${version}/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+            
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
                 try {
+                    document.getElementById('itemStatus').innerText = attempt > 0 ? `Server sibuk. Mengulangi permintaan (Percobaan ${attempt}/${maxRetries})...` : "Menghubungkan ke Google AI...";
+                    
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) // Payload aman
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                     });
                     
-                    if (response.status === 404 || response.status === 400 || response.status === 403) {
-                        continue; // Lompat ke kombinasi rute/model berikutnya
+                    // Jika server down/penuh, tunggu beberapa detik lalu coba tembak lagi
+                    if (response.status === 503 || response.status === 500) {
+                        console.warn(`Server sibuk (503). Menunggu sebelum mencoba lagi...`);
+                        await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // Jeda 2 detik, lalu 4 detik
+                        continue; 
                     }
 
-                    if (!response.ok) continue;
+                    // Jika error bawaan (API Key salah/limit), jangan diulang, langsung keluar
+                    if (response.status === 404 || response.status === 400 || response.status === 403) {
+                        break; 
+                    }
+
+                    if (!response.ok) break;
 
                     const resData = await response.json();
                     let rawText = resData.candidates[0].content.parts[0].text;
                     
-                    // Ekstraktor JSON untuk mencegah error markdown yang diselipkan AI
                     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
                     if (jsonMatch) return JSON.parse(jsonMatch[0]);
                     
                     rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
                     return JSON.parse(rawText);
                 } catch (e) {
-                    // Lanjut mencoba rute selanjutnya jika terjadi error jaringan
+                    // Jika gagal jaringan, tunggu dan coba lagi
+                    if (attempt < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
                 }
             }
         }
@@ -339,6 +350,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
         finalWorkbook = wb;
         document.getElementById('progressCounter').innerText = "PROSES SELESAI!";
         document.getElementById('statusMessage').innerText = "DATA SIAP DIUNDUH";
+        document.getElementById('itemStatus').innerText = "";
         document.getElementById('pBar').style.backgroundColor = "#28a745";
         document.getElementById('searchOverlay').style.display = 'none';
         document.getElementById('dlBtn').style.display = 'block';
