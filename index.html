@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v4.5 - PosIND Batam</title>
+    <title>AI Automation HS Code v4.6 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -11,6 +11,7 @@
             --pos-cinnabar: #EF4123; 
             --pos-delft-blue: #1C2D5A; 
             --pos-bg: #F8FAFC;
+            --pos-warning: #F59E0B;
         }
 
         body { font-family: 'Gantari', sans-serif; background: var(--pos-bg); margin: 0; padding: 0; }
@@ -28,7 +29,7 @@
         .logo-danantara { height: 40px; }
         .logo-posind { height: 35px; }
 
-        .container { max-width: 850px; margin: 45px auto; padding: 0 20px; }
+        .container { max-width: 850px; margin: 40px auto; padding: 0 20px; }
         .card { 
             background: white; padding: 50px; border-radius: 24px; 
             box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center;
@@ -48,17 +49,20 @@
         .btn-api:hover { background: #152347; }
 
         .upload-area {
-            border: 2px dashed #CBD5E1; padding: 70px; border-radius: 20px; cursor: pointer; 
+            border: 2px dashed #CBD5E1; padding: 60px; border-radius: 20px; cursor: pointer; 
             background: #FBFCFF; transition: all 0.3s ease; position: relative;
         }
         .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
 
-        /* AI Progress UI */
+        /* Progress UI */
         #searchOverlay { display: none; margin: 40px 0; }
         .progress-container { width: 100%; background: #F1F5F9; border-radius: 20px; height: 12px; margin: 25px 0; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
         .searching-text { color: var(--pos-delft-blue); font-weight: 600; font-size: 15px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        /* Warnings & Messages */
+        #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid var(--pos-warning); color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 14px; }
 
         .btn-download {
             display: none; background: var(--pos-delft-blue); color: white; border: none;
@@ -84,33 +88,34 @@
 
         <div class="api-card">
             <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);">🔑 Konfigurasi Gemini API Key Baru</label>
-            <p style="font-size: 12px; color: #64748B; margin: 4px 0 10px 0;">Sistem akan menyimpan kunci baru ini secara aman langsung di memori browser laptop Anda (tidak akan terkirim ke internet).</p>
+            <p style="font-size: 12px; color: #64748B; margin: 4px 0 10px 0;">Sistem akan menyimpan kunci baru ini secara lokal dan aman langsung di browser laptop Anda.</p>
             <div class="api-input-group">
-                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Baru Anda yang Bebas dari Bocor">
+                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Baru Anda">
                 <button class="btn-api" onclick="saveApiKey()">Simpan Kunci</button>
             </div>
         </div>
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">AI otomatis mendeteksi dan mengisi kode BTKI 8-digit secara aman</p>
+            <p style="font-size: 14px; color: #94A3B8;">Otomatis mengisi kode BTKI 8-digit secara aman & instan</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
+        <div id="warningMessage"></div>
+
         <div id="searchOverlay">
-            <p class="searching-text" id="statusMessage">AI SEDANG MENGANALISIS BARANG & MENCARI HS CODE...</p>
+            <p class="searching-text" id="statusMessage">MENGANALISIS BARANG & MENCOCOKKAN HS CODE...</p>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
             <p id="itemStatus" style="font-size: 13px; color: #64748B;"></p>
         </div>
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI OTOMATIS</button>
         
-        <div class="footer-info">Logistics AI Automation System v4.5 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v4.6 • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
-    // Membaca API Key dari memori browser lokal
     let geminiApiKey = localStorage.getItem('secure_gemini_key') || "";
 
     if (geminiApiKey) {
@@ -122,13 +127,14 @@
         if (key) {
             localStorage.setItem('secure_gemini_key', key);
             geminiApiKey = key;
-            alert("✅ API Key baru berhasil disimpan secara aman di laptop Anda!");
+            alert("✅ API Key baru berhasil disimpan secara aman!");
+            document.getElementById('warningMessage').style.display = 'none';
         } else {
             alert("Harap masukkan API Key yang valid.");
         }
     }
 
-    // Database Internal Offline untuk Barang Umum (Instan)
+    // DATABASE OFFLINE KOMPLET (Sudah diperluas berdasarkan seluruh file CIPL Bapak)
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -142,7 +148,9 @@
         'IKAT PINGGANG': '4203.30.00', 'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
         'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
         'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
-        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11'
+        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11',
+        // Update Baru Khusus File CIPL Bapak Robby:
+        'MENDALI': '7117.19.00', 'MEDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 'TOPLES': '3924.90.90', 'BLENDER': '8509.40.00', 'KARPET': '5705.00.00'
     };
 
     let finalWorkbook = null;
@@ -155,6 +163,7 @@
         
         document.getElementById('dropZone').style.display = 'none';
         document.getElementById('searchOverlay').style.display = 'block';
+        document.getElementById('warningMessage').style.display = 'none';
         
         const reader = new FileReader();
         reader.onload = async function(ev) {
@@ -193,7 +202,7 @@
             return;
         }
 
-        updateUI(25, "Mengecek database lokal...");
+        updateUI(30, "Mengecek database lokal...");
 
         let itemsToSearch = [];
         let rowMap = {};
@@ -227,13 +236,15 @@
             }
         }
 
-        // Tahap 2: AI Online Search
+        // Tahap 2: AI Online Search (Graceful Fallback Mode)
         if (itemsToSearch.length > 0) {
             if (!geminiApiKey) {
-                showCriticalError("Ada barang baru terdeteksi, harap masukkan API Key baru Anda di kolom atas terlebih dahulu!");
+                showWarning("⚠️ Ada barang baru yang tidak dikenal secara offline. Masukkan API Key baru di atas untuk analisis online otomatis, atau download hasil sementara di bawah ini.");
+                finishProcess(rows, wb);
                 return;
             }
-            updateUI(60, `AI sedang menganalisis ${itemsToSearch.length} barang baru secara aman...`);
+
+            updateUI(65, `AI sedang mencari kode untuk ${itemsToSearch.length} barang baru online...`);
             const results = await callGeminiAI(itemsToSearch);
             
             if (results) {
@@ -245,13 +256,12 @@
                         });
                     }
                 }
-                finishProcess(rows, wb);
             } else {
-                return;
+                showWarning("⚠️ Pencarian AI online terhambat (API Key mati/kuota habis). Kami mengunduh hasil menggunakan basis data offline saja.");
             }
-        } else {
-            finishProcess(rows, wb);
         }
+
+        finishProcess(rows, wb);
     }
 
     async function callGeminiAI(items) {
@@ -274,9 +284,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
             });
             
             if (!response.ok) {
-                const errData = await response.json();
-                const errMsg = errData.error ? errData.error.message : "Error tidak dikenal";
-                throw new Error(`Google API Error: ${errMsg}`);
+                throw new Error("API Key tidak valid atau limit.");
             }
 
             const resData = await response.json();
@@ -284,9 +292,8 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
             rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
             return JSON.parse(rawText);
         } catch (e) {
-            console.error("AI Error:", e);
-            showCriticalError(`Proses Gagal: ${e.message}. Pastikan API Key yang Anda masukkan benar dan belum dinonaktifkan Google.`);
-            return null;
+            console.warn("AI Gagal dipanggil:", e);
+            return null; // Mengembalikan null agar sistem masuk ke fallback mode tanpa crash
         }
     }
 
@@ -305,6 +312,12 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
     function updateUI(pct, txt) {
         document.getElementById('pBar').style.width = pct + "%";
         document.getElementById('itemStatus').innerText = txt;
+    }
+
+    function showWarning(msg) {
+        const warnEl = document.getElementById('warningMessage');
+        warnEl.innerText = msg;
+        warnEl.style.display = 'block';
     }
 
     function showCriticalError(msg) {
