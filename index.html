@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v4.9.3 - PosIND Batam</title>
+    <title>AI Automation HS Code v6.0 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -55,9 +55,9 @@
         }
         .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
 
-        /* Progress UI (Clean Style) */
+        /* Progress UI (Menampilkan Jumlah Barang) */
         #searchOverlay { display: none; margin: 40px 0; }
-        .progress-container { width: 100%; background: #F1F5F9; border-radius: 20px; height: 14px; margin: 25px 0; overflow: hidden; }
+        .progress-container { width: 100%; background: #F1F5F9; border-radius: 20px; height: 14px; margin: 20px 0; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
         .counter-text { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-weight: 700; font-size: 20px; margin: 5px 0; }
         .searching-text { color: #64748B; font-weight: 600; font-size: 14px; }
@@ -98,22 +98,22 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">Mode: Ultra Stable (Jalur Resmi) + Presisi Tinggi (5 Barang)</p>
+            <p style="font-size: 14px; color: #94A3B8;">Enterprise Engine v6.0: 1x Request Skala Besar Tanpa Tersedak</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
         <div id="warningMessage"></div>
 
         <div id="searchOverlay">
-            <div class="counter-text" id="progressCounter">Memulai...</div>
-            <div class="searching-text" id="statusMessage">MENGANALISIS BARANG & MENCOCOKKAN HS CODE...</div>
+            <div class="counter-text" id="progressCounter">Menganalisis...</div>
+            <div class="searching-text" id="statusMessage">MEMPROSES SELURUH DATA DALAM 1 SIKLUS...</div>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
             <p id="itemStatus" style="font-size: 13px; color: #64748B;"></p>
         </div>
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI OTOMATIS</button>
         
-        <div class="footer-info">Logistics AI Automation System v4.9.3 (Ultra Stable) • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v6.0 (Enterprise) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
@@ -154,7 +154,6 @@
         alert("🗑️ Memori kunci dihapus! Silakan masukkan kunci baru Anda.");
     }
 
-    // DATABASE OFFLINE KOMPLET
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -196,7 +195,7 @@
             try {
                 const data = new Uint8Array(ev.target.result);
                 const wb = XLSX.read(data, {type: 'array'});
-                await processFileWithFullAI(wb);
+                await processFileWithEnterpriseAI(wb);
             } catch (err) {
                 showCriticalError("Gagal membaca file Excel: " + err.message);
             }
@@ -204,7 +203,7 @@
         reader.readAsArrayBuffer(file);
     };
 
-    async function processFileWithFullAI(wb) {
+    async function processFileWithEnterpriseAI(wb) {
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
 
@@ -252,51 +251,36 @@
             }
         }
 
-        // TAHAP 2: BATCH 5 BARANG (PRECISION MODE)
         const totalItems = itemsToSearch.length;
-        document.getElementById('progressCounter').innerText = `0 dari ${totalItems} Barang Baru`;
-
-        let aiHasErrors = false;
+        document.getElementById('progressCounter').innerText = `Total: ${totalItems} Barang Baru`;
+        document.getElementById('pBar').style.width = "40%";
+        document.getElementById('itemStatus').innerText = "Mengirim 1x request kapasitas besar...";
 
         if (totalItems > 0) {
-            const batchSize = 5;
-            for (let i = 0; i < totalItems; i += batchSize) {
-                const batch = itemsToSearch.slice(i, i + batchSize);
-                const currentProgress = Math.min(i + batchSize, totalItems);
-                
-                document.getElementById('progressCounter').innerText = `${currentProgress} dari ${totalItems} Barang Baru`;
-                document.getElementById('pBar').style.width = (currentProgress / totalItems * 100) + "%";
-                
-                // Jeda nafas 200ms agar aman dari Rate Limit
-                await new Promise(resolve => setTimeout(resolve, 200));
-
-                const results = await callGeminiAI(batch);
-                
-                if (results) {
-                    for (let item in results) {
-                        const upperItem = item.toUpperCase();
-                        if (rowMap[upperItem]) {
-                            rowMap[upperItem].forEach(idx => {
-                                while (rows[idx].length <= colHS) rows[idx].push("");
-                                rows[idx][colHS] = results[item];
-                            });
-                        }
+            // KIRIM SEMUA BARANG SEKALIGUS (1 Request) -> Bebas dari Error 429
+            const results = await callEnterpriseAI(itemsToSearch);
+            
+            if (results) {
+                document.getElementById('pBar').style.width = "90%";
+                for (let item in results) {
+                    const upperItem = item.toUpperCase();
+                    if (rowMap[upperItem]) {
+                        rowMap[upperItem].forEach(idx => {
+                            while (rows[idx].length <= colHS) rows[idx].push("");
+                            rows[idx][colHS] = results[item];
+                        });
                     }
-                } else {
-                    aiHasErrors = true;
                 }
+            } else {
+                showWarning("⚠️ Peringatan: Request AI ditolak oleh Google. Kuota API mungkin habis atau tidak valid.");
             }
-        }
-
-        if (aiHasErrors) {
-            showWarning("⚠️ Peringatan: Ada sebagian barang yang gagal diproses AI akibat kendala jaringan/server Google. Hasil sementara tetap dapat diunduh.");
         }
 
         finishProcess(rows, wb);
     }
 
-    // ALGORITMA ULTRA STABLE: SINGLE ROUTE (Pasti Jalan)
-    async function callGeminiAI(items) {
+    // ALGORITMA ENTERPRISE v6.0 (Max Token 8192 - Anti Terpotong)
+    async function callEnterpriseAI(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
 Tentukan kode HS 8-digit BTKI yang paling tepat untuk barang kargo berikut. 
@@ -305,7 +289,6 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        // Rute paling stabil dan wajib ada di setiap Google AI Studio
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
         
         try {
@@ -313,12 +296,16 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    contents: [{ parts: [{ text: prompt }] }] 
+                    contents: [{ parts: [{ text: prompt }] }],
+                    // KUNCI RAHASIA: Memaksa AI bernafas panjang agar JSON tidak terpotong!
+                    generationConfig: {
+                        maxOutputTokens: 8192
+                    }
                 })
             });
             
             if (!response.ok) {
-                console.warn(`API Error ${response.status}`);
+                console.error(`API Error ${response.status}`);
                 return null;
             }
 
@@ -326,7 +313,6 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
             if (!resData.candidates || !resData.candidates[0]) return null;
             let rawText = resData.candidates[0].content.parts[0].text;
             
-            // Pelindung JSON (Anti-Crash)
             try {
                 const jsonMatch = rawText.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
@@ -336,11 +322,11 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                 rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
                 return JSON.parse(rawText);
             } catch (parseError) {
-                console.warn("Format jawaban AI rusak, dilewati.");
+                console.error("Format jawaban AI masih tidak sesuai JSON murni.", parseError);
                 return null;
             }
         } catch (e) {
-            console.warn(`Koneksi gagal:`, e.message);
+            console.error(`Koneksi gagal:`, e.message);
             return null;
         }
     }
@@ -348,6 +334,8 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
     function finishProcess(rows, wb) {
         document.getElementById('progressCounter').innerText = "PROSES SELESAI!";
         document.getElementById('statusMessage').innerText = "DATA SIAP DIUNDUH";
+        document.getElementById('itemStatus').innerText = "";
+        document.getElementById('pBar').style.width = "100%";
         document.getElementById('pBar').style.backgroundColor = "#28a745";
         
         const newSheet = XLSX.utils.aoa_to_sheet(rows);
@@ -374,7 +362,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_v4.9.3.xlsx");
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_v6.0.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
