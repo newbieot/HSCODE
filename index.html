@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v4.3 - PosIND Batam</title>
+    <title>AI Automation HS Code v4.4 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --pos-cinnabar: #EF4123; /* Melambangkan konektivitas */
-            --pos-delft-blue: #1C2D5A; /* Makna profesionalisme dan integritas */
+            --pos-cinnabar: #EF4123; 
+            --pos-delft-blue: #1C2D5A; 
             --pos-bg: #F8FAFC;
         }
 
@@ -74,38 +74,37 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">AI akan otomatis mendeteksi dan mengisi kode BTKI 8-digit</p>
+            <p style="font-size: 14px; color: #94A3B8;">AI otomatis mengisi kode BTKI 8-digit secara instan</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
         <div id="searchOverlay">
-            <p class="searching-text" id="statusMessage">AI SEDANG MENGANALISIS BARANG & MENCARI HS CODE...</p>
+            <p class="searching-text" id="statusMessage">MENGANALISIS BARANG & MENCOCOKKAN HS CODE...</p>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
             <p id="itemStatus" style="font-size: 13px; color: #64748B;"></p>
         </div>
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI OTOMATIS</button>
         
-        <div class="footer-info">Logistics AI Automation System v4.3 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v4.4 • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
-    // Kunci API yang diintegrasikan langsung secara aman
     const GEMINI_API_KEY = "AIzaSyCft-YfRJAcRny1eTxEW3nzyxcG2Rn3Pq8";
 
-    // Database Internal Offline untuk Barang Umum (Instan & sinonim diperbanyak)
+    // DATABASE LOKAL YANG SUDAH DILENGKAPI (Anti-Bolong Offline)
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
         'HANDUK': '6302.60.00', 'SPEAKER': '8518.22.00', 'SET TOP BOX': '8528.71.11', 'STB': '8528.71.11', 'KABEL': '8544.42.94',
-        'TOPI': '6505.00.90', 'JAM': '9105.11.00', 'BODY LOTION': '3304.99.30', 'LOTION': '3304.99.30', 'MAINAN': '9503.00.99',
-        'BONEKA': '9503.00.10', 'TAS': '4202.22.00', 'MATRAS': '9506.91.00', 'AKSESORIS': '7117.90.00',
+        'TOPI': '6505.00.90', 'JAM BEKER': '9105.11.00', 'JAM': '9105.11.00', 'BODY LOTION': '3304.99.30', 'LOTION': '3304.99.30', 
+        'MAINAN': '9503.00.99', 'BONEKA': '9503.00.10', 'TAS': '4202.22.00', 'MATRAS': '9506.91.00', 'AKSESORIS': '7117.90.00',
         'MAGIG COM': '8516.60.10', 'MAGIC COM': '8516.60.10', 'RICE COOKER': '8516.60.10', 'LAPTOP': '8471.30.20', 'KOMPUTER': '8471.30.20',
         'HANGER': '3924.90.90', 'ATK': '3926.10.00', 'ALAT TULIS': '3926.10.00', 'DOKUMEN': '4901.10.00', 'SEPATU': '6403.99.90', 
-        'SENDAL': '6402.99.90', 'SANDAL': '6402.99.90', 'BOTOL': '3924.10.00', 'MAKANAN': '2106.90.99', 'SAJADAH': '5705.00.00', 
-        'TEMPAT SAMPAH': '3924.90.90', 'TRIPOD': '9006.91.00', 'KACAMATA': '9004.10.00', 'IKAT PINGGANG': '4203.30.00', 
-        'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
+        'SENDAL': '6402.99.90', 'SANDAL': '6402.99.90', 'BOTOL MINUM': '3924.10.00', 'BOTOL AIR': '3924.10.00', 'BOTOL': '3924.10.00', 
+        'MAKANAN': '2106.90.99', 'SAJADAH': '5705.00.00', 'TEMPAT SAMPAH': '3924.90.90', 'TRIPOD': '9006.91.00', 'KACAMATA': '9004.10.00', 
+        'IKAT PINGGANG': '4203.30.00', 'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
         'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
         'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
         'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11'
@@ -141,7 +140,6 @@
 
         let headerIdx = -1, colNama = -1, colHS = -1;
         
-        // Pencarian Header secara dinamis (Flexible Header Detection)
         for(let r = 0; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
             let rData = rows[r].map(v => String(v || "").toUpperCase().trim());
@@ -150,9 +148,7 @@
             let idxHS = rData.findIndex(v => v.includes("HSCODE") || v.includes("HS CODE") || v.includes("KODE HS") || v === "HS");
             
             if(idxNama !== -1 && idxHS !== -1) {
-                headerIdx = r; 
-                colNama = idxNama; 
-                colHS = idxHS;
+                headerIdx = r; colNama = idxNama; colHS = idxHS;
                 break;
             }
         }
@@ -162,20 +158,20 @@
             return;
         }
 
-        updateUI(20, "Mengecek database lokal...");
+        updateUI(25, "Mengecek database lokal...");
 
         let itemsToSearch = [];
         let rowMap = {};
 
-        // Tahap 1: Pencarian Lokal (Offline)
+        // Tahap 1: Pencarian Lokal Offline
         for(let r = headerIdx + 1; r < rows.length; r++) {
-            if (!rows[r] || !Array.isArray(rows[r])) continue; // Lewati jika baris kosong
+            if (!rows[r] || !Array.isArray(rows[r])) continue;
             
             let rawVal = rows[r][colNama];
             if (rawVal === undefined || rawVal === null) continue;
             
             let nama = String(rawVal).trim().toUpperCase();
-            if (nama === "" || nama === "NAN" || nama === "UNDEFINED") continue;
+            if (nama === "" || nama === "NAN") continue;
             
             let matched = false;
             for (let key in OFFLINE_DB) {
@@ -187,7 +183,7 @@
                 }
             }
 
-            // Jika belum terisi offline, kumpulkan untuk dicarikan oleh AI
+            // Jika kosong di database lokal, antrekan untuk AI
             let currentHS = rows[r][colHS] ? String(rows[r][colHS]).trim() : "";
             if (!matched && currentHS === "") {
                 itemsToSearch.push(nama);
@@ -196,9 +192,9 @@
             }
         }
 
-        // Tahap 2: Hubungi AI secara Online untuk barang baru
+        // Tahap 2: AI Online Search
         if (itemsToSearch.length > 0) {
-            updateUI(50, `AI sedang mencari kode untuk ${itemsToSearch.length} barang baru secara online...`);
+            updateUI(60, `AI sedang menganalisis ${itemsToSearch.length} barang baru online...`);
             const results = await callGeminiAI(itemsToSearch);
             
             if (results) {
@@ -210,10 +206,14 @@
                         });
                     }
                 }
+                finishProcess(rows, wb);
+            } else {
+                // Dihentikan jika callGeminiAI mengembalikan null (error ditangani di fungsinya)
+                return;
             }
+        } else {
+            finishProcess(rows, wb);
         }
-
-        finishProcess(rows, wb);
     }
 
     async function callGeminiAI(items) {
@@ -243,13 +243,11 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
             const resData = await response.json();
             let rawText = resData.candidates[0].content.parts[0].text;
-            
-            // Bersihkan format markdown jika dikembalikan oleh AI
             rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
             return JSON.parse(rawText);
         } catch (e) {
             console.error("AI Error:", e);
-            // Tetap kembalikan null namun tidak menghentikan keseluruhan program
+            showCriticalError(`AI Gagal Memproses: ${e.message}. Periksa kuota API Key atau jaringan internet Anda.`);
             return null;
         }
     }
