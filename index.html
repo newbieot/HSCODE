@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v4.6 - PosIND Batam</title>
+    <title>AI Automation HS Code v4.8 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,6 @@
             --pos-cinnabar: #EF4123; 
             --pos-delft-blue: #1C2D5A; 
             --pos-bg: #F8FAFC;
-            --pos-warning: #F59E0B;
         }
 
         body { font-family: 'Gantari', sans-serif; background: var(--pos-bg); margin: 0; padding: 0; }
@@ -47,6 +46,8 @@
         .api-input { flex: 1; padding: 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; }
         .btn-api { background: var(--pos-delft-blue); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-api:hover { background: #152347; }
+        .btn-reset { background: #DC2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-reset:hover { background: #B91C1C; }
 
         .upload-area {
             border: 2px dashed #CBD5E1; padding: 60px; border-radius: 20px; cursor: pointer; 
@@ -62,7 +63,7 @@
         @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
         /* Warnings & Messages */
-        #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid var(--pos-warning); color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 14px; }
+        #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid #F59E0B; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 14px; }
 
         .btn-download {
             display: none; background: var(--pos-delft-blue); color: white; border: none;
@@ -87,17 +88,18 @@
         <div class="sub-title">MANAJER PENJUALAN KORPORAT - KCU BATAM</div>
 
         <div class="api-card">
-            <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);">🔑 Konfigurasi Gemini API Key Baru</label>
-            <p style="font-size: 12px; color: #64748B; margin: 4px 0 10px 0;">Sistem akan menyimpan kunci baru ini secara lokal dan aman langsung di browser laptop Anda.</p>
+            <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);" id="apiKeyLabel">🔑 Status API Key: Belum Diset</label>
+            <p style="font-size: 12px; color: #64748B; margin: 4px 0 10px 0;">Jika Anda mengganti kunci baru, klik <b>Hapus Kunci Lama</b> terlebih dahulu sebelum menyimpan kunci yang baru.</p>
             <div class="api-input-group">
                 <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Baru Anda">
-                <button class="btn-api" onclick="saveApiKey()">Simpan Kunci</button>
+                <button class="btn-api" onclick="saveApiKey()">Simpan</button>
+                <button class="btn-reset" onclick="resetApiKey()">Hapus Kunci Lama</button>
             </div>
         </div>
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">Otomatis mengisi kode BTKI 8-digit secara aman & instan</p>
+            <p style="font-size: 14px; color: #94A3B8;">AI otomatis mendeteksi dan mengisi kode BTKI 8-digit secara aman</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
@@ -111,30 +113,48 @@
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI OTOMATIS</button>
         
-        <div class="footer-info">Logistics AI Automation System v4.6 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v4.8 • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
     let geminiApiKey = localStorage.getItem('secure_gemini_key') || "";
 
-    if (geminiApiKey) {
-        document.getElementById('apiKeyInput').value = geminiApiKey;
+    function updateApiStatusUI() {
+        const label = document.getElementById('apiKeyLabel');
+        if (geminiApiKey) {
+            const maskedKey = geminiApiKey.substring(0, 6) + "..." + geminiApiKey.substring(geminiApiKey.length - 4);
+            label.innerHTML = `🔑 Status API Key: <span style="color: #28a745;">Aktif (${maskedKey})</span>`;
+            document.getElementById('apiKeyInput').value = geminiApiKey;
+        } else {
+            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset (Segera Masukkan Kunci Baru)</span>`;
+            document.getElementById('apiKeyInput').value = "";
+        }
     }
+
+    updateApiStatusUI();
 
     function saveApiKey() {
         const key = document.getElementById('apiKeyInput').value.trim();
         if (key) {
             localStorage.setItem('secure_gemini_key', key);
             geminiApiKey = key;
-            alert("✅ API Key baru berhasil disimpan secara aman!");
+            updateApiStatusUI();
+            alert("✅ API Key baru berhasil disimpan!");
             document.getElementById('warningMessage').style.display = 'none';
         } else {
             alert("Harap masukkan API Key yang valid.");
         }
     }
 
-    // DATABASE OFFLINE KOMPLET (Sudah diperluas berdasarkan seluruh file CIPL Bapak)
+    function resetApiKey() {
+        localStorage.removeItem('secure_gemini_key');
+        geminiApiKey = "";
+        updateApiStatusUI();
+        alert("🗑️ Memori kunci lama berhasil dihapus! Silakan masukkan kunci baru Anda.");
+    }
+
+    // DATABASE OFFLINE KOMPLET
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -149,7 +169,6 @@
         'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
         'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
         'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11',
-        // Update Baru Khusus File CIPL Bapak Robby:
         'MENDALI': '7117.19.00', 'MEDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 'TOPLES': '3924.90.90', 'BLENDER': '8509.40.00', 'KARPET': '5705.00.00'
     };
 
@@ -227,7 +246,6 @@
                 }
             }
 
-            // Jika kosong di database lokal, antrekan untuk AI
             let currentHS = rows[r][colHS] ? String(rows[r][colHS]).trim() : "";
             if (!matched && currentHS === "") {
                 itemsToSearch.push(nama);
@@ -236,15 +254,15 @@
             }
         }
 
-        // Tahap 2: AI Online Search (Graceful Fallback Mode)
+        // Tahap 2: AI Online Search (Self-Healing Fallback Mode)
         if (itemsToSearch.length > 0) {
             if (!geminiApiKey) {
-                showWarning("⚠️ Ada barang baru yang tidak dikenal secara offline. Masukkan API Key baru di atas untuk analisis online otomatis, atau download hasil sementara di bawah ini.");
+                showWarning("⚠️ Ada barang baru. Masukkan API Key baru di atas untuk analisis online otomatis, atau download hasil sementara di bawah ini.");
                 finishProcess(rows, wb);
                 return;
             }
 
-            updateUI(65, `AI sedang mencari kode untuk ${itemsToSearch.length} barang baru online...`);
+            updateUI(65, `AI sedang menganalisis ${itemsToSearch.length} barang baru online...`);
             const results = await callGeminiAI(itemsToSearch);
             
             if (results) {
@@ -257,7 +275,7 @@
                     }
                 }
             } else {
-                showWarning("⚠️ Pencarian AI online terhambat (API Key mati/kuota habis). Kami mengunduh hasil menggunakan basis data offline saja.");
+                showWarning("⚠️ Pencarian AI online terhambat (API Key bermasalah atau 404). Mengunduh hasil menggunakan basis data offline.");
             }
         }
 
@@ -273,28 +291,47 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    contents: [{ parts: [{ text: prompt }] }], 
-                    generationConfig: { responseMimeType: "application/json" } 
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error("API Key tidak valid atau limit.");
-            }
+        // Daftar URL endpoints (Coba v1 stabil dulu, jika 404 otomatis coba v1beta)
+        const endpoints = [
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`
+        ];
 
-            const resData = await response.json();
-            let rawText = resData.candidates[0].content.parts[0].text;
-            rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-            return JSON.parse(rawText);
-        } catch (e) {
-            console.warn("AI Gagal dipanggil:", e);
-            return null; // Mengembalikan null agar sistem masuk ke fallback mode tanpa crash
+        for (let url of endpoints) {
+            try {
+                console.log("Mencoba memanggil:", url);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: prompt }] }], 
+                        generationConfig: { responseMimeType: "application/json" } 
+                    })
+                });
+                
+                // Jika mendapatkan 404 Not Found, langsung lompat ke endpoint berikutnya
+                if (response.status === 404) {
+                    console.warn("404 Terdeteksi, berpindah rute API...");
+                    continue; 
+                }
+
+                if (!response.ok) {
+                    throw new Error("Respon API gagal.");
+                }
+
+                const resData = await response.json();
+                let rawText = resData.candidates[0].content.parts[0].text;
+                rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                return JSON.parse(rawText);
+            } catch (e) {
+                console.warn("Gagal pada URL:", url, e.message);
+                // Jika ini adalah endpoint terakhir yang dicoba dan tetap gagal, return null
+                if (url === endpoints[endpoints.length - 1]) {
+                    return null;
+                }
+            }
         }
+        return null;
     }
 
     function finishProcess(rows, wb) {
