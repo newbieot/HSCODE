@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v5.2 - PosIND Batam</title>
+    <title>AI Automation HS Code v5.4 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -30,11 +30,11 @@
 
         .container { max-width: 850px; margin: 40px auto; padding: 0 20px; }
         .card { 
-            background: white; padding: 45px; border-radius: 24px; 
+            background: white; padding: 50px; border-radius: 24px; 
             box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center;
         }
 
-        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 26px; margin-bottom: 8px; text-transform: uppercase; }
+        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 28px; margin-bottom: 8px; text-transform: uppercase; }
         .sub-title { color: #64748B; margin-bottom: 30px; font-size: 14px; letter-spacing: 1px; }
 
         /* API Key Setup */
@@ -62,12 +62,15 @@
         .counter-text { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-weight: 700; font-size: 22px; margin: 10px 0; }
         .searching-text { color: #64748B; font-weight: 600; font-size: 14px; }
 
+        /* Warnings */
+        #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid #F59E0B; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 14px; }
+
         .btn-download {
             display: none; background: var(--pos-delft-blue); color: white; border: none;
             padding: 18px 40px; border-radius: 12px; font-weight: 700; font-family: 'Sora', sans-serif;
             cursor: pointer; width: 100%; font-size: 16px; margin-top: 25px; transition: 0.3s;
         }
-        .btn-download:hover { background: #152347; transform: translateY(-2px); }
+        .btn-download:hover { background: #152347; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(28, 45, 90, 0.3); }
 
         .footer-info { margin-top: 35px; font-size: 11px; color: #94A3B8; text-transform: uppercase; }
     </style>
@@ -86,18 +89,21 @@
 
         <div class="api-card">
             <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);" id="apiKeyLabel">🔑 Status API Key: Belum Diset</label>
+            <p style="font-size: 12px; color: #64748B; margin: 4px 0 10px 0;">Silakan masukkan Gemini API Key yang baru Anda buat. Sistem hanya akan menyimpannya di memori browser lokal Anda secara aman.</p>
             <div class="api-input-group">
-                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Anda">
+                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Baru Anda">
                 <button class="btn-api" onclick="saveApiKey()">Simpan</button>
                 <button class="btn-reset" onclick="resetApiKey()">Hapus Kunci</button>
             </div>
         </div>
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <p id="uploadStatus" style="font-size: 18px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 13px; color: #94A3B8;">Otomatis mengisi kode dengan sistem Multi-Route dan Anti-Freeze Batching</p>
+            <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
+            <p style="font-size: 14px; color: #94A3B8;">Otomatis mengisi kode BTKI 8-digit dengan Turbo Batching & Multi-Route Recovery</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
+
+        <div id="warningMessage"></div>
 
         <div id="searchOverlay">
             <div class="counter-text" id="progressCounter">0 dari 0</div>
@@ -108,13 +114,13 @@
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics Automation System v5.2 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v5.4 • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
-    let geminiApiKey = localStorage.getItem('user_gemini_key') || "";
-    
+    let geminiApiKey = localStorage.getItem('secure_gemini_key_v5') || "";
+
     function updateApiStatusUI() {
         const label = document.getElementById('apiKeyLabel');
         if (geminiApiKey) {
@@ -122,7 +128,7 @@
             label.innerHTML = `🔑 Status API Key: <span style="color: #28a745;">Aktif (${maskedKey})</span>`;
             document.getElementById('apiKeyInput').value = geminiApiKey;
         } else {
-            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset</span>`;
+            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset (Segera Masukkan Kunci Baru)</span>`;
             document.getElementById('apiKeyInput').value = "";
         }
     }
@@ -131,22 +137,25 @@
 
     function saveApiKey() {
         const key = document.getElementById('apiKeyInput').value.trim();
-        if(key) {
-            localStorage.setItem('user_gemini_key', key);
+        if (key) {
+            localStorage.setItem('secure_gemini_key_v5', key);
             geminiApiKey = key;
             updateApiStatusUI();
-            alert("✅ API Key berhasil disimpan di browser Anda!");
+            alert("✅ API Key baru berhasil disimpan secara aman di browser!");
+            document.getElementById('warningMessage').style.display = 'none';
+        } else {
+            alert("Harap masukkan API Key yang valid.");
         }
     }
 
     function resetApiKey() {
-        localStorage.removeItem('user_gemini_key');
+        localStorage.removeItem('secure_gemini_key_v5');
         geminiApiKey = "";
         updateApiStatusUI();
-        alert("🗑️ Kunci berhasil dihapus!");
+        alert("🗑️ Memori kunci dihapus! Silakan masukkan kunci baru Anda.");
     }
 
-    // Database Offline Komplet (Back-up instan)
+    // Database Offline Komplet (Instan & 0 Kuota)
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -160,8 +169,8 @@
         'IKAT PINGGANG': '4203.30.00', 'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
         'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
         'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
-        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11',
-        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99', 'KARPET': '5705.00.00',
+        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11', 'KARPET': '5705.00.00',
+        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99',
         'MENDALI': '7117.19.00', 'MEDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 
         'TOPLES': '3924.90.90', 'BLENDER MINI': '8509.40.00', 'TIMBANGAN BADAN': '8423.10.10'
     };
@@ -173,22 +182,29 @@
         const file = e.target.files[0];
         if(!file) return;
         if(!geminiApiKey) {
-            alert("Harap masukkan API Key terlebih dahulu di kolom atas!"); return;
+            alert("⚠️ Harap masukkan dan simpan API Key Anda terlebih dahulu di kolom atas!");
+            return;
         }
         originalName = file.name;
+        
         document.getElementById('dropZone').style.display = 'none';
         document.getElementById('searchOverlay').style.display = 'block';
+        document.getElementById('warningMessage').style.display = 'none';
         
         const reader = new FileReader();
         reader.onload = async function(ev) {
-            const data = new Uint8Array(ev.target.result);
-            const wb = XLSX.read(data, {type: 'array'});
-            await processWithProgress(wb);
+            try {
+                const data = new Uint8Array(ev.target.result);
+                const wb = XLSX.read(data, {type: 'array'});
+                await processWithProgressTurbo(wb);
+            } catch (err) {
+                showCriticalError("Gagal membaca file Excel: " + err.message);
+            }
         };
         reader.readAsArrayBuffer(file);
     };
 
-    async function processWithProgress(wb) {
+    async function processWithProgressTurbo(wb) {
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
 
@@ -201,12 +217,15 @@
             if(idxNama !== -1 && idxHS !== -1) { headerIdx = r; colNama = idxNama; colHS = idxHS; break; }
         }
 
-        if(headerIdx === -1) { alert("Header NAMA BARANG atau HSCODE tidak ditemukan!"); location.reload(); return; }
+        if(headerIdx === -1) { 
+            alert("Header NAMA BARANG atau HSCODE tidak ditemukan!"); 
+            location.reload(); return; 
+        }
 
         let unknownItems = [];
         let rowMap = {};
 
-        // Tahap 1: Cek Offline & Kumpulkan Unknown
+        // Tahap 1: Pencocokan Lokal Offline (Sangat Cepat)
         for(let r = headerIdx + 1; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
             let nama = String(rows[r][colNama] || "").trim().toUpperCase();
@@ -229,25 +248,25 @@
             }
         }
 
-        // Tahap 2: Proses AI dengan "Batching" Anti-Freeze
+        // Tahap 2: AI Turbo Mode (Batch Besar dengan Indikator Real-Time)
         const total = unknownItems.length;
         document.getElementById('progressCounter').innerText = `0 dari ${total}`;
         
         if (total > 0) {
-            const batchSize = 5; // Memproses 5 barang per siklus (aman dan tidak freeze)
+            const batchSize = 25; // TURBO: Proses hingga 25 barang sekaligus
+            
             for (let i = 0; i < total; i += batchSize) {
                 const batch = unknownItems.slice(i, i + batchSize);
                 const currentProgress = Math.min(i + batchSize, total);
                 
-                // Update UI Counter Real-Time
                 document.getElementById('progressCounter').innerText = `${currentProgress} dari ${total}`;
-                document.getElementById('statusMessage').innerText = `MENGHUBUNGI AI UNTUK BARANG BARU...`;
+                document.getElementById('statusMessage').innerText = `MENGHUBUNGI AI UNTUK KELOMPOK BARANG...`;
                 document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
                 
-                // Memberi nafas pada UI agar browser tidak hang
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 50)); // Jeda anti-freeze browser
 
                 const results = await callAIBulletproof(batch);
+                
                 if (results) {
                     for (let item in results) {
                         const uppercaseItem = item.toUpperCase();
@@ -258,6 +277,9 @@
                             });
                         }
                     }
+                } else {
+                    showWarning("⚠️ Proses AI gagal pada beberapa item karena kunci bermasalah/kuota habis. Hasil sementara dapat diunduh.");
+                    break; 
                 }
             }
         }
@@ -265,7 +287,7 @@
         updateUIFinal(rows, wb);
     }
 
-    // ALGORITMA VERSI 4.9 (Multi-Endpoint, Multi-Model, Regex Extractor)
+    // Algoritma Multi-Endpoint, Multi-Model, dan Regex Extractor
     async function callAIBulletproof(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
@@ -282,37 +304,29 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
             for (let version of versions) {
                 const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${geminiApiKey}`;
                 try {
-                    console.log(`Mencoba sambungan: ${version}/${model}`);
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            contents: [{ parts: [{ text: prompt }] }] // Tanpa format paksa agar terhindar 400 Bad Request
-                        })
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) // Payload aman
                     });
                     
                     if (response.status === 404 || response.status === 400 || response.status === 403) {
-                        console.warn(`Rute ${version}/${model} gagal dengan status ${response.status}, mencoba rute cadangan...`);
-                        continue; 
+                        continue; // Lompat ke kombinasi rute/model berikutnya
                     }
 
-                    if (!response.ok) {
-                        continue;
-                    }
+                    if (!response.ok) continue;
 
                     const resData = await response.json();
                     let rawText = resData.candidates[0].content.parts[0].text;
                     
-                    // Ekstraktor JSON Cerdas
+                    // Ekstraktor JSON untuk mencegah error markdown yang diselipkan AI
                     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                        return JSON.parse(jsonMatch[0]);
-                    }
+                    if (jsonMatch) return JSON.parse(jsonMatch[0]);
                     
                     rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
                     return JSON.parse(rawText);
                 } catch (e) {
-                    console.warn(`Koneksi gagal pada rute ${version}/${model}:`, e.message);
+                    // Lanjut mencoba rute selanjutnya jika terjadi error jaringan
                 }
             }
         }
@@ -324,13 +338,27 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
         wb.Sheets[wb.SheetNames[0]] = newSheet;
         finalWorkbook = wb;
         document.getElementById('progressCounter').innerText = "PROSES SELESAI!";
+        document.getElementById('statusMessage').innerText = "DATA SIAP DIUNDUH";
         document.getElementById('pBar').style.backgroundColor = "#28a745";
         document.getElementById('searchOverlay').style.display = 'none';
         document.getElementById('dlBtn').style.display = 'block';
     }
 
+    function showWarning(msg) {
+        const warnEl = document.getElementById('warningMessage');
+        warnEl.innerText = msg;
+        warnEl.style.display = 'block';
+    }
+
+    function showCriticalError(msg) {
+        document.getElementById('statusMessage').innerHTML = `<span style="color: #EF4123;">❌ PROSES TERHENTI</span>`;
+        document.getElementById('itemStatus').innerHTML = `<span style="color: #EF4123; font-weight: bold;">Kendala: ${msg}</span>`;
+        document.getElementById('pBar').style.backgroundColor = '#EF4123';
+        document.getElementById('pBar').style.width = '100%';
+    }
+
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "FINAL_BTKI_POS_BATAM.xlsx");
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
