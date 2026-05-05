@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v6.3 - PosIND Batam</title>
+    <title>AI Automation HS Code v7.0 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -39,13 +39,13 @@
 
         /* API Key Setup */
         .api-card {
-            background: #F1F5F9; padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: left;
-            border-left: 5px solid var(--pos-delft-blue);
+            background: #F8FAFC; padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: left;
+            border-left: 5px solid #f97316; /* Groq Orange Theme */
         }
         .api-input-group { display: flex; gap: 10px; margin-top: 10px; }
         .api-input { flex: 1; padding: 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; }
-        .btn-api { background: var(--pos-delft-blue); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .btn-api:hover { background: #152347; }
+        .btn-api { background: #f97316; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-api:hover { background: #ea580c; }
         .btn-reset { background: #DC2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-reset:hover { background: #B91C1C; }
 
@@ -53,12 +53,12 @@
             border: 2px dashed #CBD5E1; padding: 60px; border-radius: 20px; cursor: pointer; 
             background: #FBFCFF; transition: all 0.3s ease; position: relative;
         }
-        .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
+        .upload-area:hover { border-color: #f97316; background: #fffedd; transform: translateY(-2px); }
 
         /* Progress UI Enhanced */
         #searchOverlay { display: none; margin: 40px 0; }
         .progress-container { width: 100%; background: #E2E8F0; border-radius: 20px; height: 14px; margin: 20px 0; overflow: hidden; }
-        .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
+        .progress-bar { width: 0%; height: 100%; background: #f97316; transition: width 0.3s ease; }
         .counter-text { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-weight: 700; font-size: 22px; margin: 10px 0; }
         .searching-text { color: #64748B; font-weight: 600; font-size: 14px; }
 
@@ -88,17 +88,17 @@
         <div class="sub-title">MANAJER PENJUALAN KORPORAT - KCU BATAM</div>
 
         <div class="api-card">
-            <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);" id="apiKeyLabel">🔑 Status API Key: Belum Diset</label>
+            <label style="font-weight: 600; font-size: 14px; color: #ea580c;" id="apiKeyLabel">⚡ Status GROQ API Key: Belum Diset</label>
             <div class="api-input-group">
-                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Anda di sini">
-                <button class="btn-api" onclick="saveApiKey()">Simpan</button>
-                <button class="btn-reset" onclick="resetApiKey()">Hapus Kunci</button>
+                <input type="password" id="apiKeyInput" class="api-input" placeholder="Awalan kunci biasanya gsk_...">
+                <button class="btn-api" onclick="saveApiKey()">Simpan Kunci Groq</button>
+                <button class="btn-reset" onclick="resetApiKey()">Hapus</button>
             </div>
         </div>
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 18px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 13px; color: #94A3B8;">Mode Eksklusif: Engine Terbaru <b>Gemini 3 Flash</b></p>
+            <p style="font-size: 13px; color: #94A3B8;">Didukung oleh mesin Groq Llama-3.3 (Super Cepat & JSON Stabil)</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
@@ -106,28 +106,28 @@
 
         <div id="searchOverlay">
             <div class="counter-text" id="progressCounter">0 dari 0</div>
-            <div class="searching-text" id="statusMessage">MENGANALISIS DATA BARANG DENGAN GEMINI 3 FLASH...</div>
+            <div class="searching-text" id="statusMessage">MENGANALISIS DATA BARANG DENGAN MESIN LLAMA 3...</div>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
             <p id="itemStatus" style="font-size: 12px; color: #94A3B8;"></p>
         </div>
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics Automation System v6.3 (Gemini 3 Flash Only) • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics Automation System v7.0 (Groq Engine) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
-    let geminiApiKey = localStorage.getItem('user_gemini_key') || "";
+    let groqApiKey = localStorage.getItem('groq_api_key_v7') || "";
     
     function updateApiStatusUI() {
         const label = document.getElementById('apiKeyLabel');
-        if (geminiApiKey) {
-            const maskedKey = geminiApiKey.substring(0, 6) + "..." + geminiApiKey.substring(geminiApiKey.length - 4);
-            label.innerHTML = `🔑 Status API Key: <span style="color: #28a745;">Aktif (${maskedKey})</span>`;
-            document.getElementById('apiKeyInput').value = geminiApiKey;
+        if (groqApiKey) {
+            const maskedKey = groqApiKey.substring(0, 6) + "..." + groqApiKey.substring(groqApiKey.length - 4);
+            label.innerHTML = `⚡ Status GROQ API: <span style="color: #28a745;">Aktif (${maskedKey})</span>`;
+            document.getElementById('apiKeyInput').value = groqApiKey;
         } else {
-            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset (Wajib Diisi!)</span>`;
+            label.innerHTML = `⚡ Status GROQ API: <span style="color: #EF4123;">Belum Diset (Wajib Diisi!)</span>`;
             document.getElementById('apiKeyInput').value = "";
         }
     }
@@ -137,16 +137,16 @@
     function saveApiKey() {
         const key = document.getElementById('apiKeyInput').value.trim();
         if(key) {
-            localStorage.setItem('user_gemini_key', key);
-            geminiApiKey = key;
+            localStorage.setItem('groq_api_key_v7', key);
+            groqApiKey = key;
             updateApiStatusUI();
-            alert("✅ API Key berhasil disimpan di browser Anda!");
+            alert("✅ API Key Groq berhasil disimpan!");
         }
     }
 
     function resetApiKey() {
-        localStorage.removeItem('user_gemini_key');
-        geminiApiKey = "";
+        localStorage.removeItem('groq_api_key_v7');
+        groqApiKey = "";
         updateApiStatusUI();
         alert("🗑️ Kunci berhasil dihapus!");
     }
@@ -178,8 +178,8 @@
         const file = e.target.files[0];
         if(!file) return;
         
-        if(!geminiApiKey || geminiApiKey.trim() === "") {
-            alert("⚠️ API Key masih kosong! Harap ketik dan klik tombol 'Simpan' di atas terlebih dahulu."); 
+        if(!groqApiKey || groqApiKey.trim() === "") {
+            alert("⚠️ API Key Groq masih kosong! Harap ketik dan klik 'Simpan Kunci Groq' terlebih dahulu."); 
             return;
         }
         
@@ -214,7 +214,6 @@
         let unknownItems = [];
         let rowMap = {};
 
-        // Pencarian Offline
         for(let r = headerIdx + 1; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
             let nama = String(rows[r][colNama] || "").trim().toUpperCase();
@@ -243,8 +242,8 @@
         let apiErrorCount = 0;
 
         if (total > 0) {
-            // Proses 10 barang per batch agar stabil
-            const batchSize = 10; 
+            // Berkat kecepatan Groq, kita bisa tembak 20 barang per batch!
+            const batchSize = 20; 
             for (let i = 0; i < total; i += batchSize) {
                 const batch = unknownItems.slice(i, i + batchSize);
                 const currentProgress = Math.min(i + batchSize, total);
@@ -252,10 +251,7 @@
                 document.getElementById('progressCounter').innerText = `${currentProgress} dari ${total}`;
                 document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
                 
-                // Jeda 500 milidetik agar terhindar dari pemblokiran Limit (Error 429)
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                const results = await callGemini3Flash(batch);
+                const results = await callGroqAPI(batch);
                 
                 if (results) {
                     for (let item in results) {
@@ -275,70 +271,63 @@
 
         if (apiErrorCount > 0) {
             const warnEl = document.getElementById('warningMessage');
-            warnEl.innerText = `⚠️ Peringatan: ${apiErrorCount} proses ditolak oleh Google (kemungkinan model Gemini 3 Flash belum dibuka untuk akun Anda atau error 404).`;
+            warnEl.innerText = `⚠️ Peringatan: Ada kegagalan koneksi ke Groq. Pastikan API Key valid.`;
             warnEl.style.display = 'block';
         }
 
         updateUIFinal(rows, wb);
     }
 
-    // ALGORITMA EKSKLUSIF GEMINI 3 FLASH
-    async function callGemini3Flash(items) {
+    // ALGORITMA GROQ (Sangat Cepat + Format JSON Dijamin Utuh)
+    async function callGroqAPI(items) {
         const uniqueItems = [...new Set(items)];
-        const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
-Tentukan kode HS 8-digit BTKI yang paling tepat untuk barang kargo berikut. 
-Output WAJIB berupa JSON MURNI tanpa teks lain, tanpa markdown, tanpa backticks. 
-Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
-
-Daftar barang: ${JSON.stringify(uniqueItems)}`;
-
-        // Menembak langsung ke rute Gemini 3 Flash
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${geminiApiKey}`;
         
-        for (let attempt = 1; attempt <= 3; attempt++) {
+        // Memanfaatkan fitur JSON Mode bawaan OpenAI/Groq
+        const url = "https://api.groq.com/openai/v1/chat/completions";
+        
+        for (let attempt = 1; attempt <= 2; attempt++) {
             try {
-                if (attempt > 1) {
-                    document.getElementById('itemStatus').innerText = `Menunggu server Google... (Mencoba ulang ${attempt}/3)`;
-                } else {
-                    document.getElementById('itemStatus').innerText = `Mengirim ke Gemini 3 Flash...`;
-                }
+                document.getElementById('itemStatus').innerText = `Memproses dengan Llama 3 (Kecepatan LPU)...`;
 
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Authorization': `Bearer ${groqApiKey}`,
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify({ 
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { maxOutputTokens: 8192 } 
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { 
+                                role: "system", 
+                                content: "Berperanlah sebagai ahli klasifikasi bea cukai Indonesia. Tentukan HS Code 8-digit BTKI. Output wajib HANYA format JSON murni. Key: NAMA BARANG, Value: XXXX.XX.XX." 
+                            },
+                            { 
+                                role: "user", 
+                                content: `Daftar barang JSON: ${JSON.stringify(uniqueItems)}` 
+                            }
+                        ],
+                        response_format: { type: "json_object" } // Fitur pengunci JSON anti-crash
                     })
                 });
                 
-                // Jika server penuh (503) atau rate limit (429), beri nafas dan ulangi
-                if (response.status === 429 || response.status === 503) {
-                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+                if (response.status === 429) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                     continue; 
                 }
 
                 if (!response.ok) {
-                    console.error(`Ditolak Google (Error ${response.status})`);
+                    console.error(`Ditolak Groq (Error ${response.status})`);
                     return null;
                 }
 
                 const resData = await response.json();
-                if (!resData.candidates || !resData.candidates[0]) return null;
-                let rawText = resData.candidates[0].content.parts[0].text;
+                let rawText = resData.choices[0].message.content;
                 
-                try {
-                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) return JSON.parse(jsonMatch[0]);
-                    
-                    rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    return JSON.parse(rawText);
-                } catch (parseError) {
-                    console.warn("JSON gagal di-parsing.");
-                    return null;
-                }
+                return JSON.parse(rawText);
+
             } catch (e) {
-                if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 1000));
+                if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
         return null;
@@ -361,7 +350,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_3Flash.xlsx");
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_Groq.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
