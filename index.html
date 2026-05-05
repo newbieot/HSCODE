@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v5.8 - PosIND Batam</title>
+    <title>AI Automation HS Code v5.9 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -95,7 +95,7 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 18px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 13px; color: #94A3B8;">Otomatis mengisi kode dengan Algoritma v5.2 + Akselerasi Turbo Batching</p>
+            <p style="font-size: 13px; color: #94A3B8;">Otomatis mengisi kode dengan Batching Ideal (10 Barang) agar AI tidak kewalahan</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
@@ -108,7 +108,7 @@
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics Automation System v5.8 (Turbo v5.2 Edition) • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics Automation System v5.9 (Sweet Spot Edition) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
@@ -174,9 +174,8 @@
         const file = e.target.files[0];
         if(!file) return;
         
-        // Pengecekan ketat agar tidak kirim API kosong ke Google
         if(!geminiApiKey || geminiApiKey.trim() === "") {
-            alert("⚠️ API Key masih kosong! Harap ketik dan klik tombol 'Simpan' di atas terlebih dahulu."); 
+            alert("⚠️ API Key masih kosong! Harap pastikan Status API Key aktif sebelum mengunggah."); 
             return;
         }
         
@@ -238,8 +237,8 @@
         document.getElementById('progressCounter').innerText = `0 dari ${total}`;
 
         if (total > 0) {
-            // TURBO MODE: Langsung proses 25 barang sekaligus! (Di v5.2 hanya 5)
-            const batchSize = 25; 
+            // BATASAN IDEAL: 10 Barang per siklus agar AI merespon dengan utuh
+            const batchSize = 10; 
             for (let i = 0; i < total; i += batchSize) {
                 const batch = unknownItems.slice(i, i + batchSize);
                 const currentProgress = Math.min(i + batchSize, total);
@@ -247,9 +246,9 @@
                 document.getElementById('progressCounter').innerText = `${currentProgress} dari ${total}`;
                 document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
                 
-                await new Promise(resolve => setTimeout(resolve, 100));
+                // Memberi nafas sedikit lebih lama agar AI tidak tersedak (500ms)
+                await new Promise(resolve => setTimeout(resolve, 500));
 
-                // Eksekusi fungsi AI v5.2 yang anti-error
                 const results = await callAIBulletproof(batch);
                 
                 if (results) {
