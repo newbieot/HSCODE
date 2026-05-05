@@ -3,235 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto-Fill HS Code Barang Pindahan</title>
-    <!-- Memuat Library SheetJS untuk membaca/menulis Excel dari browser -->
+    <title>Smart HS Code - Pos Indonesia Batam x Danantara</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Gantari:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 40px 20px;
+        :root { 
+            --pos-cinnabar: #EF4123; /* Oranye/Merah Pos */
+            --pos-delft-blue: #1C2D5A; /* Biru Gelap Pos */
+            --pos-bg: #F4F7FA;
+        }
+
+        body { 
+            font-family: 'Gantari', sans-serif; 
+            background: var(--pos-bg); 
+            margin: 0; 
+            padding: 0; 
+            color: #333; 
+        }
+
+        /* Header Layout */
+        header {
+            background: white;
+            padding: 15px 40px;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-bottom: 4px solid var(--pos-cinnabar);
         }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
+
+        .logo-danantara { height: 45px; }
+        .logo-posind { height: 40px; }
+
+        .container { 
+            max-width: 1000px; 
+            margin: 40px auto; 
+            padding: 0 20px; 
         }
-        h2 {
-            color: #ff6600; /* Warna aksen Pos */
+
+        .card { 
+            background: white; 
+            padding: 35px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 30px rgba(28, 45, 90, 0.08); 
+        }
+
+        h1 { 
+            font-family: 'Sora', sans-serif; 
+            color: var(--pos-delft-blue); 
+            text-align: center; 
             margin-top: 0;
+            font-size: 24px;
         }
-        p {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 25px;
+
+        .upload-area { 
+            border: 2px dashed #D1D9E6; 
+            padding: 40px; 
+            text-align: center; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            transition: all 0.3s ease; 
+            background: #FAFBFF; 
         }
-        input[type="file"] {
-            display: none;
+
+        .upload-area:hover { 
+            border-color: var(--pos-cinnabar); 
+            background: #FFF9F8; 
         }
-        .custom-file-upload {
-            border: 2px dashed #ccc;
-            display: inline-block;
-            padding: 20px 40px;
-            cursor: pointer;
-            border-radius: 8px;
-            background-color: #fafafa;
-            font-weight: bold;
-            color: #555;
-            transition: 0.3s;
-            width: 80%;
+
+        #status { 
+            margin: 20px 0; 
+            font-weight: 600; 
+            text-align: center; 
+            color: var(--pos-delft-blue);
         }
-        .custom-file-upload:hover {
-            border-color: #ff6600;
-            background-color: #fff5eb;
+
+        /* Table Design */
+        #learningSection { margin-top: 30px; display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 8px; overflow: hidden; }
+        th { background: var(--pos-delft-blue); color: white; padding: 15px; text-align: left; font-family: 'Sora', sans-serif; font-size: 14px; }
+        td { border-bottom: 1px solid #E0E0E0; padding: 12px; background: white; }
+        
+        input[type="text"] { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #CCC; 
+            border-radius: 6px; 
+            text-transform: uppercase; 
+            box-sizing: border-box;
         }
-        .btn-download {
-            margin-top: 25px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none; /* Disembunyikan sampai file siap */
-            text-decoration: none;
-            transition: 0.3s;
-            width: 100%;
+
+        .btn { 
+            display: inline-block; 
+            width: 100%; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: 700; 
+            font-family: 'Sora', sans-serif;
+            margin-top: 20px; 
+            transition: 0.3s; 
+            text-transform: uppercase;
         }
-        .btn-download:hover {
-            background-color: #218838;
-        }
-        #status {
-            margin-top: 15px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .success { color: #28a745; }
-        .error { color: #dc3545; }
+
+        .btn-save { background: var(--pos-delft-blue); color: white; }
+        .btn-save:hover { background: #2A3F75; transform: translateY(-2px); }
+
+        .btn-download { background: var(--pos-cinnabar); color: white; display: none; }
+        .btn-download:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .footer-note { text-align: center; font-size: 12px; color: #888; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>📦 Auto-Fill HS Code CIPL</h2>
-        <p>Upload file Excel (Packing List / CIPL) Anda. Sistem otomatis membaca kolom <b>NAMA BARANG</b> dan mengisi <b>HSCODE</b> yang kosong.</p>
+<header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Danantara_Indonesia_%28no_SW%29.svg/960px-Danantara_Indonesia_%28no_SW%29.svg.png" alt="Logo Danantara" class="logo-danantara">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/POSIND_2023_%28with_wordmark%29.svg/1280px-POSIND_2023_%28with_wordmark%29.svg.png" alt="Logo PosIND" class="logo-posind">
+</header>
+
+<div class="container">
+    <div class="card">
+        <h1>AUTOMATION HS CODE SYSTEM</h1>
+        <p style="text-align: center; margin-bottom: 30px; color: #666;">Unit Penjualan Korporat - KCU Batam</p>
         
-        <label for="fileUpload" class="custom-file-upload" id="uploadLabel">
-            📁 Klik untuk Pilih File Excel (.xlsx)
-        </label>
-        <input type="file" id="fileUpload" accept=".xlsx, .xls" />
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <p id="uploadText" style="font-weight: 600;">📁 Upload File Excel CIPL Anda</p>
+            <p style="font-size: 13px; color: #999;">Klik di sini untuk memilih file</p>
+            <input type="file" id="fileInput" accept=".xlsx" style="display:none">
+        </div>
 
         <div id="status"></div>
 
-        <button id="downloadBtn" class="btn-download">⬇️ Download File Excel yang Sudah Diisi</button>
+        <div id="learningSection">
+            <h3 style="color: var(--pos-cinnabar); font-family: 'Sora', sans-serif;">⚠️ Deteksi Barang Baru</h3>
+            <p style="font-size: 14px;">Masukkan HS Code untuk menyimpan ke database internal Anda:</p>
+            <table id="newItemsTable">
+                <thead>
+                    <tr>
+                        <th>DESKRIPSI BARANG</th>
+                        <th>HS CODE (8 DIGIT)</th>
+                    </tr>
+                </thead>
+                <tbody id="newItemsBody"></tbody>
+            </table>
+            <button class="btn btn-save" onclick="saveAndApply()">Simpan & Proses Ulang</button>
+        </div>
+
+        <button id="dlBtn" class="btn btn-download" onclick="downloadExcel()">⬇️ Download Hasil Final</button>
+        
+        <div class="footer-note">
+            Sistem Otomatisasi Logistik v2.0 • Properti Internal Pos Indonesia KCU Batam
+        </div>
     </div>
+</div>
 
-    <script>
-        // Database Kamus HS Code Akurat
-        const hsMapping = {
-            'PAKAIAN': '6109.10',
-            'TV': '8528.72',
-            'MEJA LIPAT': '9403.20',
-            'RAKET': '9506.51',
-            'HANDUK': '6302.60',
-            'SPEAKER TV': '8518.22',
-            'SET TOP BOX': '8528.71',
-            'KABEL': '8544.42',
-            'TOPI': '6505.00',
-            'JAM BEKER': '9105.11',
-            'BODY LOTION': '3304.99',
-            'MAINAN': '9503.00',
-            'BONEKA': '9503.00',
-            'TAS': '4202.22',
-            'MATRAS OLAHRAGA': '9506.91',
-            'AKSESORIS': '7117.90',
-            'MAGIG COM': '8516.60',
-            'LAPTOP BEKAS': '8471.30',
-            'HANGER': '3924.90',
-            'BUKU': '4901.99',
-            'ATK': '3926.10',
-            'DOKUMEN': '4901.10',
-            'SEPATU': '6403.99',
-            'SENDAL': '6402.99',
-            'BOTOL MINUM': '3924.10',
-            'MAKANAN': '2106.90',
-            'SAJADAH': '5705.00',
-            'TEMPAT SAMPAH': '3924.90',
-            'TRIPOD': '9006.91',
-            'KACAMATA': '9004.10',
-            'IKAT PINGGANG': '4203.30',
-            'PAYUNG': '6601.99',
-            'PERALATAN OLAHRAGA': '9506.99',
-            'TIMBANGAN BADAN': '8423.10',
-            'SETRIKA UAP': '8516.40',
-            'PALU': '8205.20',
-            'RAK SEPATU': '9403.20'
+<script>
+    // Logika Pemrosesan (Sama seperti versi Smart sebelumnya namun dengan UI baru)
+    let defaultDB = {
+        'PAKAIAN': '6109.10.00', 'TV': '8528.72.92', 'MEJA LIPAT': '9403.20.90', 
+        'RAKET': '9506.51.00', 'HANDUK': '6302.60.00', 'SPEAKER TV': '8518.22.00', 
+        'SET TOP BOX': '8528.71.11', 'KABEL': '8544.42.94'
+    };
+
+    let processedData = null;
+    let fileName = "";
+    let currentNewItems = [];
+    let savedDB = JSON.parse(localStorage.getItem('hscode_memory')) || {};
+    let fullDB = {...defaultDB, ...savedDB};
+
+    document.getElementById('fileInput').onchange = function(e) {
+        let file = e.target.files[0];
+        if(!file) return;
+        fileName = file.name;
+        document.getElementById('uploadText').innerText = "📄 " + fileName;
+        
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+            let data = new Uint8Array(ev.target.result);
+            let workbook = XLSX.read(data, {type: 'array'});
+            processWorkbook(workbook);
         };
+        reader.readAsArrayBuffer(file);
+    };
 
-        let processedWorkbook;
-        let originalFileName = "";
+    function processWorkbook(wb) {
+        let sheet = wb.Sheets[wb.SheetNames[0]];
+        let rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+        
+        let headerIdx = -1, colNama = -1, colHS = -1;
+        for(let r=0; r<rows.length; r++) {
+            let row = rows[r].map(v => String(v).toUpperCase().trim());
+            if(row.includes("NAMA BARANG")) {
+                headerIdx = r;
+                colNama = row.indexOf("NAMA BARANG");
+                colHS = row.indexOf("HSCODE");
+                break;
+            }
+        }
 
-        document.getElementById('fileUpload').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if(!file) return;
+        if(headerIdx === -1) {
+            alert("Header 'NAMA BARANG' tidak ditemukan!"); return;
+        }
 
-            originalFileName = file.name.split('.')[0];
-            document.getElementById('uploadLabel').innerText = "📄 File Terpilih: " + file.name;
-            let statusEl = document.getElementById('status');
-            statusEl.innerHTML = "Memproses data...";
-            statusEl.className = "";
-            document.getElementById('downloadBtn').style.display = 'none';
+        currentNewItems = [];
+        let itemsFilled = 0;
 
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
+        for(let r = headerIdx + 1; r < rows.length; r++) {
+            let nama = String(rows[r][colNama] || "").toUpperCase().trim();
+            if(!nama) continue;
 
-                    // Mengambil sheet pertama
-                    let firstSheetName = workbook.SheetNames[0];
-                    let worksheet = workbook.Sheets[firstSheetName];
+            let hscode = findSmartMatch(nama);
+            if(hscode) {
+                rows[r][colHS] = hscode;
+                itemsFilled++;
+            } else if (!rows[r][colHS]) {
+                if(!currentNewItems.includes(nama)) currentNewItems.push(nama);
+            }
+        }
 
-                    // Konversi sheet ke array 2 dimensi (header: 1 agar format baris/kolom persis sama)
-                    let rows = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+        processedData = { wb, rows, sheetName: wb.SheetNames[0] };
 
-                    let headerRowIdx = -1;
-                    let namaBarangCol = -1;
-                    let hsCodeCol = -1;
+        if(currentNewItems.length > 0) {
+            showLearningArea();
+        } else {
+            showDownloadBtn(itemsFilled);
+        }
+    }
 
-                    // Mencari letak baris yang ada tulisan "NAMA BARANG" dan "HSCODE"
-                    for(let r = 0; r < rows.length; r++) {
-                        let row = rows[r];
-                        for(let c = 0; c < row.length; c++) {
-                            if(typeof row[c] === 'string' && row[c].trim().toUpperCase() === 'NAMA BARANG') {
-                                headerRowIdx = r;
-                                namaBarangCol = c;
-                            }
-                            if(typeof row[c] === 'string' && row[c].trim().toUpperCase() === 'HSCODE') {
-                                hsCodeCol = c;
-                            }
-                        }
-                        if(headerRowIdx !== -1 && hsCodeCol !== -1) break;
-                    }
+    function findSmartMatch(nama) {
+        if(fullDB[nama]) return fullDB[nama];
+        for (let key in fullDB) {
+            if (nama.includes(key) || key.includes(nama)) return fullDB[key];
+        }
+        return null;
+    }
 
-                    if(headerRowIdx !== -1 && hsCodeCol !== -1) {
-                        // Mulai membaca baris di bawah header
-                        let itemsUpdated = 0;
-                        for(let r = headerRowIdx + 1; r < rows.length; r++) {
-                            let row = rows[r];
-                            let namaBarang = row[namaBarangCol];
-                            
-                            if(namaBarang && typeof namaBarang === 'string') {
-                                let key = namaBarang.trim().toUpperCase();
-                                // Pastikan kolom HSCODE ada indeksnya meski sebelumnya array-nya pendek
-                                while(row.length <= hsCodeCol) row.push("");
-                                
-                                // Jika NAMA BARANG ada di database dan HSCODE-nya kosong
-                                if(hsMapping[key] && (!row[hsCodeCol] || row[hsCodeCol].toString().trim() === "")) {
-                                    row[hsCodeCol] = hsMapping[key];
-                                    itemsUpdated++;
-                                }
-                            }
-                        }
-
-                        // Kembalikan array 2 dimensi menjadi sheet
-                        let newWorksheet = XLSX.utils.aoa_to_sheet(rows);
-                        workbook.Sheets[firstSheetName] = newWorksheet;
-                        processedWorkbook = workbook;
-
-                        statusEl.innerHTML = `✅ Berhasil! Ditemukan dan diisi ${itemsUpdated} HS Code.`;
-                        statusEl.className = "success";
-                        document.getElementById('downloadBtn').style.display = 'block';
-
-                    } else {
-                        statusEl.innerHTML = "❌ Gagal: Tidak menemukan kolom 'NAMA BARANG' atau 'HSCODE' di file Excel.";
-                        statusEl.className = "error";
-                    }
-                } catch (error) {
-                    statusEl.innerHTML = "❌ Terjadi kesalahan saat membaca file: " + error.message;
-                    statusEl.className = "error";
-                }
-            };
-            reader.readAsArrayBuffer(file);
+    function showLearningArea() {
+        let body = document.getElementById('newItemsBody');
+        body.innerHTML = "";
+        currentNewItems.forEach(item => {
+            body.innerHTML += `<tr><td><strong>${item}</strong></td><td><input type="text" class="new-hs" data-name="${item}" placeholder="Masukkan Kode"></td></tr>`;
         });
+        document.getElementById('learningSection').style.display = 'block';
+        document.getElementById('status').innerText = "Mohon lengkapi HS Code untuk barang baru.";
+    }
 
-        // Fungsi Eksekusi Download
-        document.getElementById('downloadBtn').addEventListener('click', function() {
-            if(processedWorkbook) {
-                XLSX.writeFile(processedWorkbook, originalFileName + "_Terisi_HSCode.xlsx");
+    function saveAndApply() {
+        document.querySelectorAll('.new-hs').forEach(input => {
+            let code = input.value.trim();
+            let name = input.getAttribute('data-name');
+            if(code) {
+                savedDB[name] = code;
+                fullDB[name] = code;
             }
         });
-    </script>
+        localStorage.setItem('hscode_memory', JSON.stringify(savedDB));
+        processWorkbook(processedData.wb);
+        document.getElementById('learningSection').style.display = 'none';
+    }
+
+    function showDownloadBtn(count) {
+        document.getElementById('status').innerHTML = `<span style="color: #28a745;">✅ Berhasil memetakan ${count} item!</span>`;
+        document.getElementById('dlBtn').style.display = 'block';
+    }
+
+    function downloadExcel() {
+        let newSheet = XLSX.utils.aoa_to_sheet(processedData.rows);
+        processedData.wb.Sheets[processedData.sheetName] = newSheet;
+        XLSX.writeFile(processedData.wb, "FINAL_HSCODE_" + fileName);
+    }
+</script>
+
 </body>
 </html>
