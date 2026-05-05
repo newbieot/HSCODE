@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v6.2 - PosIND Batam</title>
+    <title>AI Automation HS Code v6.3 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -98,7 +98,7 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 18px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 13px; color: #94A3B8;">Mode Eksklusif: Hanya menggunakan Engine <b>Gemini 2.5 Flash</b></p>
+            <p style="font-size: 13px; color: #94A3B8;">Mode Eksklusif: Engine Terbaru <b>Gemini 3 Flash</b></p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
@@ -106,14 +106,14 @@
 
         <div id="searchOverlay">
             <div class="counter-text" id="progressCounter">0 dari 0</div>
-            <div class="searching-text" id="statusMessage">MENGANALISIS DATA BARANG DENGAN GEMINI 2.5 FLASH...</div>
+            <div class="searching-text" id="statusMessage">MENGANALISIS DATA BARANG DENGAN GEMINI 3 FLASH...</div>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
             <p id="itemStatus" style="font-size: 12px; color: #94A3B8;"></p>
         </div>
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics Automation System v6.2 (2.5 Flash Only) • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics Automation System v6.3 (Gemini 3 Flash Only) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
@@ -243,7 +243,7 @@
         let apiErrorCount = 0;
 
         if (total > 0) {
-            // Kita proses 10 barang sekaligus dengan Gemini 2.5 Flash
+            // Proses 10 barang per batch agar stabil
             const batchSize = 10; 
             for (let i = 0; i < total; i += batchSize) {
                 const batch = unknownItems.slice(i, i + batchSize);
@@ -252,10 +252,10 @@
                 document.getElementById('progressCounter').innerText = `${currentProgress} dari ${total}`;
                 document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
                 
-                // Jeda 500 milidetik agar terhindar dari pemblokiran Spam/Limit (Error 429)
+                // Jeda 500 milidetik agar terhindar dari pemblokiran Limit (Error 429)
                 await new Promise(resolve => setTimeout(resolve, 500));
 
-                const results = await callGemini25Flash(batch);
+                const results = await callGemini3Flash(batch);
                 
                 if (results) {
                     for (let item in results) {
@@ -275,15 +275,15 @@
 
         if (apiErrorCount > 0) {
             const warnEl = document.getElementById('warningMessage');
-            warnEl.innerText = `⚠️ Peringatan: ${apiErrorCount} proses API ditolak oleh Google (mungkin API Key tidak memiliki akses ke Gemini 2.5 Flash atau limit habis).`;
+            warnEl.innerText = `⚠️ Peringatan: ${apiErrorCount} proses ditolak oleh Google (kemungkinan model Gemini 3 Flash belum dibuka untuk akun Anda atau error 404).`;
             warnEl.style.display = 'block';
         }
 
         updateUIFinal(rows, wb);
     }
 
-    // ALGORITMA EKSKLUSIF GEMINI 2.5 FLASH
-    async function callGemini25Flash(items) {
+    // ALGORITMA EKSKLUSIF GEMINI 3 FLASH
+    async function callGemini3Flash(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
 Tentukan kode HS 8-digit BTKI yang paling tepat untuk barang kargo berikut. 
@@ -292,16 +292,15 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        // Murni menembak 1 rute ini saja, tanpa tebak-tebakan rute lain
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+        // Menembak langsung ke rute Gemini 3 Flash
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${geminiApiKey}`;
         
-        // Coba ulang otomatis (Auto-Retry) hingga 3x jika server penuh (503) atau dibatasi (429)
         for (let attempt = 1; attempt <= 3; attempt++) {
             try {
                 if (attempt > 1) {
                     document.getElementById('itemStatus').innerText = `Menunggu server Google... (Mencoba ulang ${attempt}/3)`;
                 } else {
-                    document.getElementById('itemStatus').innerText = `Mengirim ke Gemini 2.5 Flash...`;
+                    document.getElementById('itemStatus').innerText = `Mengirim ke Gemini 3 Flash...`;
                 }
 
                 const response = await fetch(url, {
@@ -313,13 +312,12 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                     })
                 });
                 
-                // Jika server penuh (503) atau terlalu cepat (429), beri nafas dan ulangi
+                // Jika server penuh (503) atau rate limit (429), beri nafas dan ulangi
                 if (response.status === 429 || response.status === 503) {
                     await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
                     continue; 
                 }
 
-                // Jika error 400 (kunci salah) atau 404 (model belum disetujui), langsung batalkan
                 if (!response.ok) {
                     console.error(`Ditolak Google (Error ${response.status})`);
                     return null;
@@ -340,7 +338,6 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                     return null;
                 }
             } catch (e) {
-                // Jeda 1 detik jika gagal internet
                 if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
@@ -364,7 +361,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_2.5Flash.xlsx");
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_3Flash.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
