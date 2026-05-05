@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v5.2 - PosIND Batam</title>
+    <title>AI Automation HS Code v5.8 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -87,7 +87,7 @@
         <div class="api-card">
             <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);" id="apiKeyLabel">🔑 Status API Key: Belum Diset</label>
             <div class="api-input-group">
-                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Anda">
+                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Anda di sini">
                 <button class="btn-api" onclick="saveApiKey()">Simpan</button>
                 <button class="btn-reset" onclick="resetApiKey()">Hapus Kunci</button>
             </div>
@@ -95,7 +95,7 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 18px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 13px; color: #94A3B8;">Otomatis mengisi kode dengan sistem Multi-Route dan Anti-Freeze Batching</p>
+            <p style="font-size: 13px; color: #94A3B8;">Otomatis mengisi kode dengan Algoritma v5.2 + Akselerasi Turbo Batching</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
@@ -108,11 +108,12 @@
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics Automation System v5.2 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics Automation System v5.8 (Turbo v5.2 Edition) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
+    // Membaca laci memori yang SAMA PERSIS dengan versi 5.2
     let geminiApiKey = localStorage.getItem('user_gemini_key') || "";
     
     function updateApiStatusUI() {
@@ -122,7 +123,7 @@
             label.innerHTML = `🔑 Status API Key: <span style="color: #28a745;">Aktif (${maskedKey})</span>`;
             document.getElementById('apiKeyInput').value = geminiApiKey;
         } else {
-            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset</span>`;
+            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset (Wajib Diisi!)</span>`;
             document.getElementById('apiKeyInput').value = "";
         }
     }
@@ -146,7 +147,7 @@
         alert("🗑️ Kunci berhasil dihapus!");
     }
 
-    // Database Offline Komplet (Back-up instan)
+    // Database Offline Komplet (Instan & Tanpa Kuota)
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -160,8 +161,8 @@
         'IKAT PINGGANG': '4203.30.00', 'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
         'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
         'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
-        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11',
-        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99', 'KARPET': '5705.00.00',
+        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11', 'KARPET': '5705.00.00',
+        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99',
         'MENDALI': '7117.19.00', 'MEDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 
         'TOPLES': '3924.90.90', 'BLENDER MINI': '8509.40.00', 'TIMBANGAN BADAN': '8423.10.10'
     };
@@ -172,9 +173,13 @@
     document.getElementById('fileInput').onchange = function(e) {
         const file = e.target.files[0];
         if(!file) return;
-        if(!geminiApiKey) {
-            alert("Harap masukkan API Key terlebih dahulu di kolom atas!"); return;
+        
+        // Pengecekan ketat agar tidak kirim API kosong ke Google
+        if(!geminiApiKey || geminiApiKey.trim() === "") {
+            alert("⚠️ API Key masih kosong! Harap ketik dan klik tombol 'Simpan' di atas terlebih dahulu."); 
+            return;
         }
+        
         originalName = file.name;
         document.getElementById('dropZone').style.display = 'none';
         document.getElementById('searchOverlay').style.display = 'block';
@@ -206,7 +211,7 @@
         let unknownItems = [];
         let rowMap = {};
 
-        // Tahap 1: Cek Offline & Kumpulkan Unknown
+        // Pencarian Offline
         for(let r = headerIdx + 1; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
             let nama = String(rows[r][colNama] || "").trim().toUpperCase();
@@ -229,25 +234,24 @@
             }
         }
 
-        // Tahap 2: Proses AI dengan "Batching" Anti-Freeze
         const total = unknownItems.length;
         document.getElementById('progressCounter').innerText = `0 dari ${total}`;
-        
+
         if (total > 0) {
-            const batchSize = 5; // Memproses 5 barang per siklus (aman dan tidak freeze)
+            // TURBO MODE: Langsung proses 25 barang sekaligus! (Di v5.2 hanya 5)
+            const batchSize = 25; 
             for (let i = 0; i < total; i += batchSize) {
                 const batch = unknownItems.slice(i, i + batchSize);
                 const currentProgress = Math.min(i + batchSize, total);
                 
-                // Update UI Counter Real-Time
                 document.getElementById('progressCounter').innerText = `${currentProgress} dari ${total}`;
-                document.getElementById('statusMessage').innerText = `MENGHUBUNGI AI UNTUK BARANG BARU...`;
                 document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
                 
-                // Memberi nafas pada UI agar browser tidak hang
                 await new Promise(resolve => setTimeout(resolve, 100));
 
+                // Eksekusi fungsi AI v5.2 yang anti-error
                 const results = await callAIBulletproof(batch);
+                
                 if (results) {
                     for (let item in results) {
                         const uppercaseItem = item.toUpperCase();
@@ -265,7 +269,7 @@
         updateUIFinal(rows, wb);
     }
 
-    // ALGORITMA VERSI 4.9 (Multi-Endpoint, Multi-Model, Regex Extractor)
+    // ALGORITMA IDENTIK DENGAN VERSI 5.2 (Sangat Aman)
     async function callAIBulletproof(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
@@ -282,17 +286,15 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
             for (let version of versions) {
                 const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${geminiApiKey}`;
                 try {
-                    console.log(`Mencoba sambungan: ${version}/${model}`);
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            contents: [{ parts: [{ text: prompt }] }] // Tanpa format paksa agar terhindar 400 Bad Request
+                            contents: [{ parts: [{ text: prompt }] }] 
                         })
                     });
                     
                     if (response.status === 404 || response.status === 400 || response.status === 403) {
-                        console.warn(`Rute ${version}/${model} gagal dengan status ${response.status}, mencoba rute cadangan...`);
                         continue; 
                     }
 
@@ -303,7 +305,6 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                     const resData = await response.json();
                     let rawText = resData.candidates[0].content.parts[0].text;
                     
-                    // Ekstraktor JSON Cerdas
                     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
                     if (jsonMatch) {
                         return JSON.parse(jsonMatch[0]);
@@ -312,7 +313,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                     rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
                     return JSON.parse(rawText);
                 } catch (e) {
-                    console.warn(`Koneksi gagal pada rute ${version}/${model}:`, e.message);
+                    // Ignore and loop next
                 }
             }
         }
@@ -324,13 +325,14 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
         wb.Sheets[wb.SheetNames[0]] = newSheet;
         finalWorkbook = wb;
         document.getElementById('progressCounter').innerText = "PROSES SELESAI!";
+        document.getElementById('statusMessage').innerText = "DATA SIAP DIUNDUH";
         document.getElementById('pBar').style.backgroundColor = "#28a745";
         document.getElementById('searchOverlay').style.display = 'none';
         document.getElementById('dlBtn').style.display = 'block';
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "FINAL_BTKI_POS_BATAM.xlsx");
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
