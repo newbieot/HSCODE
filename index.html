@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v6.0 - PosIND Batam</title>
+    <title>AI Automation HS Code v6.1 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -55,7 +55,7 @@
         }
         .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
 
-        /* Progress UI (Menampilkan Jumlah Barang) */
+        /* Progress UI */
         #searchOverlay { display: none; margin: 40px 0; }
         .progress-container { width: 100%; background: #F1F5F9; border-radius: 20px; height: 14px; margin: 20px 0; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
@@ -98,22 +98,22 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">Enterprise Engine v6.0: 1x Request Skala Besar Tanpa Tersedak</p>
+            <p style="font-size: 14px; color: #94A3B8;">Mode Banyak Jalur (Multi-Route) + Enterprise Engine Anti-Freeze</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
         <div id="warningMessage"></div>
 
         <div id="searchOverlay">
-            <div class="counter-text" id="progressCounter">Menganalisis...</div>
-            <div class="searching-text" id="statusMessage">MEMPROSES SELURUH DATA DALAM 1 SIKLUS...</div>
+            <div class="counter-text" id="progressCounter">Mencari Jalur...</div>
+            <div class="searching-text" id="statusMessage">MENGHUBUNGI SERVER GOOGLE DALAM 1 SIKLUS...</div>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
             <p id="itemStatus" style="font-size: 13px; color: #64748B;"></p>
         </div>
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI OTOMATIS</button>
         
-        <div class="footer-info">Logistics AI Automation System v6.0 (Enterprise) • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v6.1 (Multi-Route Enterprise) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
@@ -195,7 +195,7 @@
             try {
                 const data = new Uint8Array(ev.target.result);
                 const wb = XLSX.read(data, {type: 'array'});
-                await processFileWithEnterpriseAI(wb);
+                await processFileWithMultiRouteAI(wb);
             } catch (err) {
                 showCriticalError("Gagal membaca file Excel: " + err.message);
             }
@@ -203,7 +203,7 @@
         reader.readAsArrayBuffer(file);
     };
 
-    async function processFileWithEnterpriseAI(wb) {
+    async function processFileWithMultiRouteAI(wb) {
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
 
@@ -253,12 +253,11 @@
 
         const totalItems = itemsToSearch.length;
         document.getElementById('progressCounter').innerText = `Total: ${totalItems} Barang Baru`;
-        document.getElementById('pBar').style.width = "40%";
-        document.getElementById('itemStatus').innerText = "Mengirim 1x request kapasitas besar...";
+        document.getElementById('pBar').style.width = "50%";
 
         if (totalItems > 0) {
-            // KIRIM SEMUA BARANG SEKALIGUS (1 Request) -> Bebas dari Error 429
-            const results = await callEnterpriseAI(itemsToSearch);
+            // KIRIM SEMUA BARANG SEKALIGUS MENGGUNAKAN METODE BANYAK JALUR
+            const results = await callMultiRouteEnterpriseAI(itemsToSearch);
             
             if (results) {
                 document.getElementById('pBar').style.width = "90%";
@@ -272,15 +271,15 @@
                     }
                 }
             } else {
-                showWarning("⚠️ Peringatan: Request AI ditolak oleh Google. Kuota API mungkin habis atau tidak valid.");
+                showWarning("⚠️ Seluruh rute Google AI ditolak. Pastikan koneksi dan limit akun AI Studio Anda masih aman.");
             }
         }
 
         finishProcess(rows, wb);
     }
 
-    // ALGORITMA ENTERPRISE v6.0 (Max Token 8192 - Anti Terpotong)
-    async function callEnterpriseAI(items) {
+    // ALGORITMA PAMUNGKAS: MULTI-ROUTE + ENTERPRISE BATCH
+    async function callMultiRouteEnterpriseAI(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
 Tentukan kode HS 8-digit BTKI yang paling tepat untuk barang kargo berikut. 
@@ -289,46 +288,58 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+        // MENGKOMBinasikan Rute & Model (Metode Banyak Jalur)
+        const models = ["gemini-1.5-flash", "gemini-2.5-flash", "gemini-1.5-pro"];
+        const versions = ["v1beta", "v1"];
         
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    contents: [{ parts: [{ text: prompt }] }],
-                    // KUNCI RAHASIA: Memaksa AI bernafas panjang agar JSON tidak terpotong!
-                    generationConfig: {
-                        maxOutputTokens: 8192
-                    }
-                })
-            });
-            
-            if (!response.ok) {
-                console.error(`API Error ${response.status}`);
-                return null;
-            }
-
-            const resData = await response.json();
-            if (!resData.candidates || !resData.candidates[0]) return null;
-            let rawText = resData.candidates[0].content.parts[0].text;
-            
-            try {
-                const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    return JSON.parse(jsonMatch[0]);
-                }
+        for (let model of models) {
+            for (let version of versions) {
+                const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${geminiApiKey}`;
                 
-                rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-                return JSON.parse(rawText);
-            } catch (parseError) {
-                console.error("Format jawaban AI masih tidak sesuai JSON murni.", parseError);
-                return null;
+                try {
+                    document.getElementById('itemStatus').innerText = `Mencoba Menembus Jalur: ${version} / ${model}...`;
+                    console.log(`Menembak ke rute: ${version}/${model}`);
+                    
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            contents: [{ parts: [{ text: prompt }] }],
+                            // KUNCI ENTERPRISE: Agar balasan JSON AI panjang tidak terpotong
+                            generationConfig: { maxOutputTokens: 8192 }
+                        })
+                    });
+                    
+                    // Jika 404 (Not Found) atau 400, lompati rute ini secara diam-diam
+                    if (response.status === 404 || response.status === 400 || response.status === 403) {
+                        continue; 
+                    }
+
+                    if (!response.ok) continue;
+
+                    const resData = await response.json();
+                    if (!resData.candidates || !resData.candidates[0]) continue;
+                    let rawText = resData.candidates[0].content.parts[0].text;
+                    
+                    try {
+                        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            return JSON.parse(jsonMatch[0]);
+                        }
+                        
+                        rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                        return JSON.parse(rawText);
+                    } catch (parseError) {
+                        // Jika JSON AI rusak/terpotong, abaikan jawaban ini dan coba model/jalur berikutnya
+                        console.warn(`JSON rusak di jalur ${version}/${model}, mencoba rute lain...`);
+                        continue;
+                    }
+                } catch (e) {
+                    console.warn(`Koneksi gagal pada rute ${version}/${model}:`, e.message);
+                }
             }
-        } catch (e) {
-            console.error(`Koneksi gagal:`, e.message);
-            return null;
         }
+        return null; // Semua jalur buntu
     }
 
     function finishProcess(rows, wb) {
@@ -362,7 +373,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_v6.0.xlsx");
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_v6.1.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
