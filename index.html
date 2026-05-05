@@ -3,279 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart HS Code - Pos Indonesia Batam x Danantara</title>
+    <title>AI Automation HS Code - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Gantari:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --pos-cinnabar: #EF4123; /* Oranye/Merah Pos */
-            --pos-delft-blue: #1C2D5A; /* Biru Gelap Pos */
-            --pos-bg: #F4F7FA;
+            --pos-cinnabar: #EF4123; /* */
+            --pos-delft-blue: #1C2D5A; /* */
+            --pos-bg: #F8FAFC;
         }
 
-        body { 
-            font-family: 'Gantari', sans-serif; 
-            background: var(--pos-bg); 
-            margin: 0; 
-            padding: 0; 
-            color: #333; 
-        }
+        body { font-family: 'Gantari', sans-serif; background: var(--pos-bg); margin: 0; padding: 0; } /*[cite: 1] */
 
-        /* Header Layout */
         header {
             background: white;
             padding: 15px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             border-bottom: 4px solid var(--pos-cinnabar);
         }
 
-        .logo-danantara { height: 45px; }
-        .logo-posind { height: 40px; }
+        .logo-danantara { height: 40px; }
+        .logo-posind { height: 35px; }
 
-        .container { 
-            max-width: 1000px; 
-            margin: 40px auto; 
-            padding: 0 20px; 
-        }
-
+        .container { max-width: 800px; margin: 50px auto; padding: 0 20px; }
         .card { 
-            background: white; 
-            padding: 35px; 
-            border-radius: 16px; 
-            box-shadow: 0 8px 30px rgba(28, 45, 90, 0.08); 
+            background: white; padding: 40px; border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(28, 45, 90, 0.1); text-align: center;
         }
 
-        h1 { 
-            font-family: 'Sora', sans-serif; 
-            color: var(--pos-delft-blue); 
-            text-align: center; 
-            margin-top: 0;
-            font-size: 24px;
+        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 26px; margin-bottom: 10px; } /*[cite: 1] */
+
+        /* Loading Animation */
+        #searchOverlay {
+            display: none;
+            margin: 30px 0;
         }
-
-        .upload-area { 
-            border: 2px dashed #D1D9E6; 
-            padding: 40px; 
-            text-align: center; 
-            cursor: pointer; 
-            border-radius: 12px; 
-            transition: all 0.3s ease; 
-            background: #FAFBFF; 
+        .progress-container {
+            width: 100%; background: #EEE; border-radius: 10px; height: 10px; margin: 20px 0; overflow: hidden;
         }
-
-        .upload-area:hover { 
-            border-color: var(--pos-cinnabar); 
-            background: #FFF9F8; 
+        .progress-bar {
+            width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.3s;
         }
+        .searching-text { color: var(--pos-delft-blue); font-weight: 600; font-size: 14px; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-        #status { 
-            margin: 20px 0; 
-            font-weight: 600; 
-            text-align: center; 
-            color: var(--pos-delft-blue);
+        .upload-box {
+            border: 2px dashed #CBD5E1; padding: 50px; border-radius: 15px; cursor: pointer; background: #FBFCFF; transition: 0.3s;
         }
+        .upload-box:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; }
 
-        /* Table Design */
-        #learningSection { margin-top: 30px; display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 8px; overflow: hidden; }
-        th { background: var(--pos-delft-blue); color: white; padding: 15px; text-align: left; font-family: 'Sora', sans-serif; font-size: 14px; }
-        td { border-bottom: 1px solid #E0E0E0; padding: 12px; background: white; }
-        
-        input[type="text"] { 
-            width: 100%; 
-            padding: 10px; 
-            border: 1px solid #CCC; 
-            border-radius: 6px; 
-            text-transform: uppercase; 
-            box-sizing: border-box;
+        .btn-download {
+            display: none; background: var(--pos-delft-blue); color: white; border: none;
+            padding: 15px 30px; border-radius: 10px; font-weight: 700; font-family: 'Sora', sans-serif;
+            cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px;
         }
-
-        .btn { 
-            display: inline-block; 
-            width: 100%; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: 700; 
-            font-family: 'Sora', sans-serif;
-            margin-top: 20px; 
-            transition: 0.3s; 
-            text-transform: uppercase;
-        }
-
-        .btn-save { background: var(--pos-delft-blue); color: white; }
-        .btn-save:hover { background: #2A3F75; transform: translateY(-2px); }
-
-        .btn-download { background: var(--pos-cinnabar); color: white; display: none; }
-        .btn-download:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        .footer-note { text-align: center; font-size: 12px; color: #888; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Danantara_Indonesia_%28no_SW%29.svg/960px-Danantara_Indonesia_%28no_SW%29.svg.png" alt="Logo Danantara" class="logo-danantara">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/POSIND_2023_%28with_wordmark%29.svg/1280px-POSIND_2023_%28with_wordmark%29.svg.png" alt="Logo PosIND" class="logo-posind">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Danantara_Indonesia_%28no_SW%29.svg/960px-Danantara_Indonesia_%28no_SW%29.svg.png" class="logo-danantara">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/POSIND_2023_%28with_wordmark%29.svg/1280px-POSIND_2023_%28with_wordmark%29.svg.png" class="logo-posind">
 </header>
 
 <div class="container">
     <div class="card">
-        <h1>AUTOMATION HS CODE SYSTEM</h1>
-        <p style="text-align: center; margin-bottom: 30px; color: #666;">Unit Penjualan Korporat - KCU Batam</p>
-        
-        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <p id="uploadText" style="font-weight: 600;">📁 Upload File Excel CIPL Anda</p>
-            <p style="font-size: 13px; color: #999;">Klik di sini untuk memilih file</p>
+        <h1>AI AUTOMATION HS CODE</h1>
+        <p style="color: #64748B; margin-bottom: 30px;">Unit Penjualan Korporat - KCU Batam</p>
+
+        <div id="dropZone" class="upload-box" onclick="document.getElementById('fileInput').click()">
+            <p id="uploadStatus">📁 Taruh file CIPL Anda di sini</p>
+            <span style="font-size: 12px; color: #94A3B8;">Format yang didukung: .xlsx</span>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
-        <div id="status"></div>
-
-        <div id="learningSection">
-            <h3 style="color: var(--pos-cinnabar); font-family: 'Sora', sans-serif;">⚠️ Deteksi Barang Baru</h3>
-            <p style="font-size: 14px;">Masukkan HS Code untuk menyimpan ke database internal Anda:</p>
-            <table id="newItemsTable">
-                <thead>
-                    <tr>
-                        <th>DESKRIPSI BARANG</th>
-                        <th>HS CODE (8 DIGIT)</th>
-                    </tr>
-                </thead>
-                <tbody id="newItemsBody"></tbody>
-            </table>
-            <button class="btn btn-save" onclick="saveAndApply()">Simpan & Proses Ulang</button>
+        <!-- Simulation Search Engine UI -->
+        <div id="searchOverlay">
+            <p class="searching-text">🔍 MENGANALISIS DESKRIPSI BARANG & MENCARI HS CODE...</p>
+            <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
+            <p id="itemStatus" style="font-size: 12px; color: #64748B;"></p>
         </div>
 
-        <button id="dlBtn" class="btn btn-download" onclick="downloadExcel()">⬇️ Download Hasil Final</button>
-        
-        <div class="footer-note">
-            Sistem Otomatisasi Logistik v2.0 • Properti Internal Pos Indonesia KCU Batam
-        </div>
+        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL OTOMATIS</button>
     </div>
 </div>
 
 <script>
-    // Logika Pemrosesan (Sama seperti versi Smart sebelumnya namun dengan UI baru)
-    let defaultDB = {
-        'PAKAIAN': '6109.10.00', 'TV': '8528.72.92', 'MEJA LIPAT': '9403.20.90', 
-        'RAKET': '9506.51.00', 'HANDUK': '6302.60.00', 'SPEAKER TV': '8518.22.00', 
-        'SET TOP BOX': '8528.71.11', 'KABEL': '8544.42.94'
+    // Database Master (Hampir Seluruh Barang Pindahan Umum)
+    const MASTER_DB = {
+        'PAKAIAN': '6109.10.00', 'TV': '8528.72.92', 'MEJA': '9403.20.90', 'MAINAN': '9503.00.99',
+        'BONEKA': '9503.00.10', 'KARPET': '5705.00.00', 'BUKU': '4901.99.00', 'PIALA': '8306.29.00',
+        'MENDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 'TOPLES': '3924.90.90',
+        'BLENDER': '8509.40.00', 'TIMBANGAN': '8423.10.10', 'BINGKAI': '4414.00.00', 'PANCI': '7323.93.10',
+        'DIFFUSER': '8509.80.90', 'SPEAKER': '8518.22.00', 'TREADMILL': '9506.91.00', 'KULKAS': '8418.10.11',
+        'MESIN CUCI': '8450.11.90', 'DISPENSER': '8516.10.11', 'SETRIKA': '8516.40.00', 'TAS': '4202.22.00',
+        'SEPATU': '6403.99.90', 'KACAMATA': '9004.10.00', 'PAYUNG': '6601.99.00', 'GORDYN': '6303.12.00'
     };
 
-    let processedData = null;
-    let fileName = "";
-    let currentNewItems = [];
-    let savedDB = JSON.parse(localStorage.getItem('hscode_memory')) || {};
-    let fullDB = {...defaultDB, ...savedDB};
+    let finalWorkbook = null;
+    let originalName = "";
 
     document.getElementById('fileInput').onchange = function(e) {
-        let file = e.target.files[0];
+        const file = e.target.files[0];
         if(!file) return;
-        fileName = file.name;
-        document.getElementById('uploadText').innerText = "📄 " + fileName;
-        
-        let reader = new FileReader();
-        reader.onload = function(ev) {
-            let data = new Uint8Array(ev.target.result);
-            let workbook = XLSX.read(data, {type: 'array'});
-            processWorkbook(workbook);
-        };
-        reader.readAsArrayBuffer(file);
+        originalName = file.name;
+        simulateAISearch(file);
     };
 
-    function processWorkbook(wb) {
-        let sheet = wb.Sheets[wb.SheetNames[0]];
-        let rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+    function simulateAISearch(file) {
+        document.getElementById('dropZone').style.display = 'none';
+        document.getElementById('searchOverlay').style.display = 'block';
         
-        let headerIdx = -1, colNama = -1, colHS = -1;
-        for(let r=0; r<rows.length; r++) {
-            let row = rows[r].map(v => String(v).toUpperCase().trim());
-            if(row.includes("NAMA BARANG")) {
-                headerIdx = r;
-                colNama = row.indexOf("NAMA BARANG");
-                colHS = row.indexOf("HSCODE");
-                break;
+        let progress = 0;
+        const pBar = document.getElementById('pBar');
+        const itemStatus = document.getElementById('itemStatus');
+
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                processFile(file);
             }
-        }
+            pBar.style.width = progress + "%";
+            itemStatus.innerText = "Mencocokkan baris data... " + Math.floor(progress) + "%";
+        }, 300);
+    }
 
-        if(headerIdx === -1) {
-            alert("Header 'NAMA BARANG' tidak ditemukan!"); return;
-        }
+    function processFile(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, {type: 'array'});
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
 
-        currentNewItems = [];
-        let itemsFilled = 0;
-
-        for(let r = headerIdx + 1; r < rows.length; r++) {
-            let nama = String(rows[r][colNama] || "").toUpperCase().trim();
-            if(!nama) continue;
-
-            let hscode = findSmartMatch(nama);
-            if(hscode) {
-                rows[r][colHS] = hscode;
-                itemsFilled++;
-            } else if (!rows[r][colHS]) {
-                if(!currentNewItems.includes(nama)) currentNewItems.push(nama);
+            let headerIdx = -1, colNama = -1, colHS = -1;
+            for(let r=0; r<rows.length; r++) {
+                let rData = rows[r].map(v => String(v).toUpperCase().trim());
+                if(rData.includes("NAMA BARANG")) {
+                    headerIdx = r; colNama = rData.indexOf("NAMA BARANG"); colHS = rData.indexOf("HSCODE");
+                    break;
+                }
             }
-        }
 
-        processedData = { wb, rows, sheetName: wb.SheetNames[0] };
-
-        if(currentNewItems.length > 0) {
-            showLearningArea();
-        } else {
-            showDownloadBtn(itemsFilled);
-        }
-    }
-
-    function findSmartMatch(nama) {
-        if(fullDB[nama]) return fullDB[nama];
-        for (let key in fullDB) {
-            if (nama.includes(key) || key.includes(nama)) return fullDB[key];
-        }
-        return null;
-    }
-
-    function showLearningArea() {
-        let body = document.getElementById('newItemsBody');
-        body.innerHTML = "";
-        currentNewItems.forEach(item => {
-            body.innerHTML += `<tr><td><strong>${item}</strong></td><td><input type="text" class="new-hs" data-name="${item}" placeholder="Masukkan Kode"></td></tr>`;
-        });
-        document.getElementById('learningSection').style.display = 'block';
-        document.getElementById('status').innerText = "Mohon lengkapi HS Code untuk barang baru.";
-    }
-
-    function saveAndApply() {
-        document.querySelectorAll('.new-hs').forEach(input => {
-            let code = input.value.trim();
-            let name = input.getAttribute('data-name');
-            if(code) {
-                savedDB[name] = code;
-                fullDB[name] = code;
+            for(let r = headerIdx + 1; r < rows.length; r++) {
+                let nama = String(rows[r][colNama] || "").toUpperCase();
+                for (let key in MASTER_DB) {
+                    if (nama.includes(key)) {
+                        rows[r][colHS] = MASTER_DB[key];
+                        break;
+                    }
+                }
             }
-        });
-        localStorage.setItem('hscode_memory', JSON.stringify(savedDB));
-        processWorkbook(processedData.wb);
-        document.getElementById('learningSection').style.display = 'none';
+
+            const newSheet = XLSX.utils.aoa_to_sheet(rows);
+            wb.Sheets[wb.SheetNames[0]] = newSheet;
+            finalWorkbook = wb;
+
+            document.getElementById('searchOverlay').style.display = 'none';
+            document.getElementById('dlBtn').style.display = 'block';
+        };
+        reader.readAsArrayBuffer(file);
     }
 
-    function showDownloadBtn(count) {
-        document.getElementById('status').innerHTML = `<span style="color: #28a745;">✅ Berhasil memetakan ${count} item!</span>`;
-        document.getElementById('dlBtn').style.display = 'block';
-    }
-
-    function downloadExcel() {
-        let newSheet = XLSX.utils.aoa_to_sheet(processedData.rows);
-        processedData.wb.Sheets[processedData.sheetName] = newSheet;
-        XLSX.writeFile(processedData.wb, "FINAL_HSCODE_" + fileName);
+    function downloadResult() {
+        XLSX.writeFile(finalWorkbook, "AUTO_HSCODE_" + originalName);
+        location.reload(); 
     }
 </script>
-
 </body>
 </html>
