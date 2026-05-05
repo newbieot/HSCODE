@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v6.1 - PosIND Batam</title>
+    <title>AI Automation HS Code v6.2 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -30,11 +30,11 @@
 
         .container { max-width: 850px; margin: 40px auto; padding: 0 20px; }
         .card { 
-            background: white; padding: 50px; border-radius: 24px; 
+            background: white; padding: 45px; border-radius: 24px; 
             box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center;
         }
 
-        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 28px; margin-bottom: 8px; text-transform: uppercase; }
+        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 26px; margin-bottom: 8px; text-transform: uppercase; }
         .sub-title { color: #64748B; margin-bottom: 30px; font-size: 14px; letter-spacing: 1px; }
 
         /* API Key Setup */
@@ -55,11 +55,11 @@
         }
         .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
 
-        /* Progress UI */
+        /* Progress UI Enhanced */
         #searchOverlay { display: none; margin: 40px 0; }
-        .progress-container { width: 100%; background: #F1F5F9; border-radius: 20px; height: 14px; margin: 20px 0; overflow: hidden; }
+        .progress-container { width: 100%; background: #E2E8F0; border-radius: 20px; height: 14px; margin: 20px 0; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
-        .counter-text { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-weight: 700; font-size: 20px; margin: 5px 0; }
+        .counter-text { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-weight: 700; font-size: 22px; margin: 10px 0; }
         .searching-text { color: #64748B; font-weight: 600; font-size: 14px; }
 
         /* Warnings */
@@ -70,7 +70,7 @@
             padding: 18px 40px; border-radius: 12px; font-weight: 700; font-family: 'Sora', sans-serif;
             cursor: pointer; width: 100%; font-size: 16px; margin-top: 25px; transition: 0.3s;
         }
-        .btn-download:hover { background: #152347; box-shadow: 0 5px 15px rgba(28, 45, 90, 0.3); }
+        .btn-download:hover { background: #152347; transform: translateY(-2px); }
 
         .footer-info { margin-top: 35px; font-size: 11px; color: #94A3B8; text-transform: uppercase; }
     </style>
@@ -90,36 +90,36 @@
         <div class="api-card">
             <label style="font-weight: 600; font-size: 14px; color: var(--pos-delft-blue);" id="apiKeyLabel">🔑 Status API Key: Belum Diset</label>
             <div class="api-input-group">
-                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Baru Anda">
+                <input type="password" id="apiKeyInput" class="api-input" placeholder="Masukkan API Key Anda di sini">
                 <button class="btn-api" onclick="saveApiKey()">Simpan</button>
                 <button class="btn-reset" onclick="resetApiKey()">Hapus Kunci</button>
             </div>
         </div>
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">Mode Banyak Jalur (Multi-Route) + Enterprise Engine Anti-Freeze</p>
+            <p id="uploadStatus" style="font-size: 18px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
+            <p style="font-size: 13px; color: #94A3B8;">Mode Eksklusif: Hanya menggunakan Engine <b>Gemini 2.5 Flash</b></p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
         <div id="warningMessage"></div>
 
         <div id="searchOverlay">
-            <div class="counter-text" id="progressCounter">Mencari Jalur...</div>
-            <div class="searching-text" id="statusMessage">MENGHUBUNGI SERVER GOOGLE DALAM 1 SIKLUS...</div>
+            <div class="counter-text" id="progressCounter">0 dari 0</div>
+            <div class="searching-text" id="statusMessage">MENGANALISIS DATA BARANG DENGAN GEMINI 2.5 FLASH...</div>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-            <p id="itemStatus" style="font-size: 13px; color: #64748B;"></p>
+            <p id="itemStatus" style="font-size: 12px; color: #94A3B8;"></p>
         </div>
 
-        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI OTOMATIS</button>
+        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics AI Automation System v6.1 (Multi-Route Enterprise) • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics Automation System v6.2 (2.5 Flash Only) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
-    let geminiApiKey = localStorage.getItem('secure_gemini_key') || "";
-
+    let geminiApiKey = localStorage.getItem('user_gemini_key') || "";
+    
     function updateApiStatusUI() {
         const label = document.getElementById('apiKeyLabel');
         if (geminiApiKey) {
@@ -127,7 +127,7 @@
             label.innerHTML = `🔑 Status API Key: <span style="color: #28a745;">Aktif (${maskedKey})</span>`;
             document.getElementById('apiKeyInput').value = geminiApiKey;
         } else {
-            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset (Segera Masukkan Kunci Baru)</span>`;
+            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset (Wajib Diisi!)</span>`;
             document.getElementById('apiKeyInput').value = "";
         }
     }
@@ -136,24 +136,22 @@
 
     function saveApiKey() {
         const key = document.getElementById('apiKeyInput').value.trim();
-        if (key) {
-            localStorage.setItem('secure_gemini_key', key);
+        if(key) {
+            localStorage.setItem('user_gemini_key', key);
             geminiApiKey = key;
             updateApiStatusUI();
-            alert("✅ API Key baru berhasil disimpan!");
-            document.getElementById('warningMessage').style.display = 'none';
-        } else {
-            alert("Harap masukkan API Key yang valid.");
+            alert("✅ API Key berhasil disimpan di browser Anda!");
         }
     }
 
     function resetApiKey() {
-        localStorage.removeItem('secure_gemini_key');
+        localStorage.removeItem('user_gemini_key');
         geminiApiKey = "";
         updateApiStatusUI();
-        alert("🗑️ Memori kunci dihapus! Silakan masukkan kunci baru Anda.");
+        alert("🗑️ Kunci berhasil dihapus!");
     }
 
+    // Database Offline Komplet (Instan & Tanpa Kuota)
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -167,9 +165,9 @@
         'IKAT PINGGANG': '4203.30.00', 'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
         'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
         'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
-        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11',
-        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99', 'KARPET': '5705.00.00',
-        'PIALA': '8306.29.00', 'MENDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 
+        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11', 'KARPET': '5705.00.00',
+        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99',
+        'MENDALI': '7117.19.00', 'MEDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 
         'TOPLES': '3924.90.90', 'BLENDER MINI': '8509.40.00', 'TIMBANGAN BADAN': '8423.10.10'
     };
 
@@ -180,35 +178,29 @@
         const file = e.target.files[0];
         if(!file) return;
         
-        if (!geminiApiKey) {
-            alert("⚠️ Harap masukkan API Key Anda dan klik Simpan terlebih dahulu!");
+        if(!geminiApiKey || geminiApiKey.trim() === "") {
+            alert("⚠️ API Key masih kosong! Harap ketik dan klik tombol 'Simpan' di atas terlebih dahulu."); 
             return;
         }
-
+        
         originalName = file.name;
         document.getElementById('dropZone').style.display = 'none';
         document.getElementById('searchOverlay').style.display = 'block';
-        document.getElementById('warningMessage').style.display = 'none';
         
         const reader = new FileReader();
         reader.onload = async function(ev) {
-            try {
-                const data = new Uint8Array(ev.target.result);
-                const wb = XLSX.read(data, {type: 'array'});
-                await processFileWithMultiRouteAI(wb);
-            } catch (err) {
-                showCriticalError("Gagal membaca file Excel: " + err.message);
-            }
+            const data = new Uint8Array(ev.target.result);
+            const wb = XLSX.read(data, {type: 'array'});
+            await processWithProgress(wb);
         };
         reader.readAsArrayBuffer(file);
     };
 
-    async function processFileWithMultiRouteAI(wb) {
+    async function processWithProgress(wb) {
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
 
         let headerIdx = -1, colNama = -1, colHS = -1;
-        
         for(let r = 0; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
             let rData = rows[r].map(v => String(v || "").toUpperCase().trim());
@@ -217,69 +209,81 @@
             if(idxNama !== -1 && idxHS !== -1) { headerIdx = r; colNama = idxNama; colHS = idxHS; break; }
         }
 
-        if(headerIdx === -1) {
-            showCriticalError("Header kolom 'NAMA BARANG' atau 'HSCODE' tidak ditemukan!");
-            return;
-        }
+        if(headerIdx === -1) { alert("Header NAMA BARANG atau HSCODE tidak ditemukan!"); location.reload(); return; }
 
-        let itemsToSearch = [];
+        let unknownItems = [];
         let rowMap = {};
 
+        // Pencarian Offline
         for(let r = headerIdx + 1; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
-            let rawVal = rows[r][colNama];
-            if (rawVal === undefined || rawVal === null) continue;
-            
-            let nama = String(rawVal).trim().toUpperCase();
-            if (nama === "" || nama === "NAN") continue;
+            let nama = String(rows[r][colNama] || "").trim().toUpperCase();
+            if(!nama || nama === "NAN") continue;
             
             let matched = false;
-            for (let key in OFFLINE_DB) {
-                if (nama.includes(key) || key.includes(nama)) {
+            for(let key in OFFLINE_DB) {
+                if(nama.includes(key) || key.includes(nama)) { 
                     while (rows[r].length <= colHS) rows[r].push("");
-                    rows[r][colHS] = OFFLINE_DB[key];
+                    rows[r][colHS] = OFFLINE_DB[key]; 
                     matched = true; 
-                    break;
+                    break; 
                 }
             }
 
             let currentHS = rows[r][colHS] ? String(rows[r][colHS]).trim() : "";
-            if (!matched && currentHS === "") {
-                itemsToSearch.push(nama);
-                if (!rowMap[nama]) rowMap[nama] = [];
+            if(!matched && currentHS === "") {
+                if(!rowMap[nama]) { unknownItems.push(nama); rowMap[nama] = []; }
                 rowMap[nama].push(r);
             }
         }
 
-        const totalItems = itemsToSearch.length;
-        document.getElementById('progressCounter').innerText = `Total: ${totalItems} Barang Baru`;
-        document.getElementById('pBar').style.width = "50%";
+        const total = unknownItems.length;
+        document.getElementById('progressCounter').innerText = `0 dari ${total}`;
 
-        if (totalItems > 0) {
-            // KIRIM SEMUA BARANG SEKALIGUS MENGGUNAKAN METODE BANYAK JALUR
-            const results = await callMultiRouteEnterpriseAI(itemsToSearch);
-            
-            if (results) {
-                document.getElementById('pBar').style.width = "90%";
-                for (let item in results) {
-                    const upperItem = item.toUpperCase();
-                    if (rowMap[upperItem]) {
-                        rowMap[upperItem].forEach(idx => {
-                            while (rows[idx].length <= colHS) rows[idx].push("");
-                            rows[idx][colHS] = results[item];
-                        });
+        let apiErrorCount = 0;
+
+        if (total > 0) {
+            // Kita proses 10 barang sekaligus dengan Gemini 2.5 Flash
+            const batchSize = 10; 
+            for (let i = 0; i < total; i += batchSize) {
+                const batch = unknownItems.slice(i, i + batchSize);
+                const currentProgress = Math.min(i + batchSize, total);
+                
+                document.getElementById('progressCounter').innerText = `${currentProgress} dari ${total}`;
+                document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
+                
+                // Jeda 500 milidetik agar terhindar dari pemblokiran Spam/Limit (Error 429)
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const results = await callGemini25Flash(batch);
+                
+                if (results) {
+                    for (let item in results) {
+                        const uppercaseItem = item.toUpperCase();
+                        if (rowMap[uppercaseItem]) {
+                            rowMap[uppercaseItem].forEach(idx => {
+                                while (rows[idx].length <= colHS) rows[idx].push("");
+                                rows[idx][colHS] = results[item];
+                            });
+                        }
                     }
+                } else {
+                    apiErrorCount++;
                 }
-            } else {
-                showWarning("⚠️ Seluruh rute Google AI ditolak. Pastikan koneksi dan limit akun AI Studio Anda masih aman.");
             }
         }
 
-        finishProcess(rows, wb);
+        if (apiErrorCount > 0) {
+            const warnEl = document.getElementById('warningMessage');
+            warnEl.innerText = `⚠️ Peringatan: ${apiErrorCount} proses API ditolak oleh Google (mungkin API Key tidak memiliki akses ke Gemini 2.5 Flash atau limit habis).`;
+            warnEl.style.display = 'block';
+        }
+
+        updateUIFinal(rows, wb);
     }
 
-    // ALGORITMA PAMUNGKAS: MULTI-ROUTE + ENTERPRISE BATCH
-    async function callMultiRouteEnterpriseAI(items) {
+    // ALGORITMA EKSKLUSIF GEMINI 2.5 FLASH
+    async function callGemini25Flash(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
 Tentukan kode HS 8-digit BTKI yang paling tepat untuk barang kargo berikut. 
@@ -288,66 +292,66 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        // MENGKOMBinasikan Rute & Model (Metode Banyak Jalur)
-        const models = ["gemini-1.5-flash", "gemini-2.5-flash", "gemini-1.5-pro"];
-        const versions = ["v1beta", "v1"];
+        // Murni menembak 1 rute ini saja, tanpa tebak-tebakan rute lain
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
         
-        for (let model of models) {
-            for (let version of versions) {
-                const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${geminiApiKey}`;
+        // Coba ulang otomatis (Auto-Retry) hingga 3x jika server penuh (503) atau dibatasi (429)
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                if (attempt > 1) {
+                    document.getElementById('itemStatus').innerText = `Menunggu server Google... (Mencoba ulang ${attempt}/3)`;
+                } else {
+                    document.getElementById('itemStatus').innerText = `Mengirim ke Gemini 2.5 Flash...`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { maxOutputTokens: 8192 } 
+                    })
+                });
+                
+                // Jika server penuh (503) atau terlalu cepat (429), beri nafas dan ulangi
+                if (response.status === 429 || response.status === 503) {
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+                    continue; 
+                }
+
+                // Jika error 400 (kunci salah) atau 404 (model belum disetujui), langsung batalkan
+                if (!response.ok) {
+                    console.error(`Ditolak Google (Error ${response.status})`);
+                    return null;
+                }
+
+                const resData = await response.json();
+                if (!resData.candidates || !resData.candidates[0]) return null;
+                let rawText = resData.candidates[0].content.parts[0].text;
                 
                 try {
-                    document.getElementById('itemStatus').innerText = `Mencoba Menembus Jalur: ${version} / ${model}...`;
-                    console.log(`Menembak ke rute: ${version}/${model}`);
+                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) return JSON.parse(jsonMatch[0]);
                     
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            contents: [{ parts: [{ text: prompt }] }],
-                            // KUNCI ENTERPRISE: Agar balasan JSON AI panjang tidak terpotong
-                            generationConfig: { maxOutputTokens: 8192 }
-                        })
-                    });
-                    
-                    // Jika 404 (Not Found) atau 400, lompati rute ini secara diam-diam
-                    if (response.status === 404 || response.status === 400 || response.status === 403) {
-                        continue; 
-                    }
-
-                    if (!response.ok) continue;
-
-                    const resData = await response.json();
-                    if (!resData.candidates || !resData.candidates[0]) continue;
-                    let rawText = resData.candidates[0].content.parts[0].text;
-                    
-                    try {
-                        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                        if (jsonMatch) {
-                            return JSON.parse(jsonMatch[0]);
-                        }
-                        
-                        rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-                        return JSON.parse(rawText);
-                    } catch (parseError) {
-                        // Jika JSON AI rusak/terpotong, abaikan jawaban ini dan coba model/jalur berikutnya
-                        console.warn(`JSON rusak di jalur ${version}/${model}, mencoba rute lain...`);
-                        continue;
-                    }
-                } catch (e) {
-                    console.warn(`Koneksi gagal pada rute ${version}/${model}:`, e.message);
+                    rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    return JSON.parse(rawText);
+                } catch (parseError) {
+                    console.warn("JSON gagal di-parsing.");
+                    return null;
                 }
+            } catch (e) {
+                // Jeda 1 detik jika gagal internet
+                if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
-        return null; // Semua jalur buntu
+        return null;
     }
 
-    function finishProcess(rows, wb) {
+    function updateUIFinal(rows, wb) {
         document.getElementById('progressCounter').innerText = "PROSES SELESAI!";
         document.getElementById('statusMessage').innerText = "DATA SIAP DIUNDUH";
-        document.getElementById('itemStatus').innerText = "";
-        document.getElementById('pBar').style.width = "100%";
         document.getElementById('pBar').style.backgroundColor = "#28a745";
+        document.getElementById('itemStatus').innerText = "";
         
         const newSheet = XLSX.utils.aoa_to_sheet(rows);
         wb.Sheets[wb.SheetNames[0]] = newSheet;
@@ -359,21 +363,8 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
         }, 800);
     }
 
-    function showCriticalError(msg) {
-        document.getElementById('statusMessage').innerHTML = `<span style="color: #EF4123;">❌ PROSES TERHENTI</span>`;
-        document.getElementById('itemStatus').innerHTML = `<span style="color: #EF4123; font-weight: bold;">Kendala: ${msg}</span>`;
-        document.getElementById('pBar').style.backgroundColor = '#EF4123';
-        document.getElementById('pBar').style.width = '100%';
-    }
-
-    function showWarning(msg) {
-        const warnEl = document.getElementById('warningMessage');
-        warnEl.innerText = msg;
-        warnEl.style.display = 'block';
-    }
-
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_v6.1.xlsx");
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_2.5Flash.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
