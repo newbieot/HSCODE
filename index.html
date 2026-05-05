@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v4.9 - PosIND Batam</title>
+    <title>AI Automation HS Code v4.9.1 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -55,14 +55,14 @@
         }
         .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
 
-        /* Progress UI */
+        /* Progress UI (Clean Style dari v4.9) */
         #searchOverlay { display: none; margin: 40px 0; }
         .progress-container { width: 100%; background: #F1F5F9; border-radius: 20px; height: 12px; margin: 25px 0; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
         .searching-text { color: var(--pos-delft-blue); font-weight: 600; font-size: 15px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        /* Warnings & Messages */
+        /* Warnings */
         #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid #F59E0B; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 14px; }
 
         .btn-download {
@@ -113,7 +113,7 @@
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI OTOMATIS</button>
         
-        <div class="footer-info">Logistics AI Automation System v4.9 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v4.9.1 (Refined) • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
@@ -154,7 +154,7 @@
         alert("🗑️ Memori kunci lama berhasil dihapus! Silakan masukkan kunci baru Anda.");
     }
 
-    // DATABASE OFFLINE KOMPLET (Garansi pengisian instan)
+    // DATABASE OFFLINE KOMPLET
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -169,8 +169,7 @@
         'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
         'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
         'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11',
-        // Update Otomatis CIPL Bapak Robby:
-        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99', 'BONEKA': '9503.00.10', 'KARPET': '5705.00.00',
+        'MEJA PORTABLE KIDS': '9403.20.90', 'MAINAN ANAK': '9503.00.99', 'KARPET': '5705.00.00',
         'PIALA': '8306.29.00', 'MENDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 
         'TOPLES': '3924.90.90', 'BLENDER MINI': '8509.40.00', 'TIMBANGAN BADAN': '8423.10.10'
     };
@@ -209,14 +208,9 @@
         for(let r = 0; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
             let rData = rows[r].map(v => String(v || "").toUpperCase().trim());
-            
-            let idxNama = rData.findIndex(v => v.includes("NAMA BARANG") || v === "DESKRIPSI BARANG" || v === "BARANG" || v === "NAMA");
-            let idxHS = rData.findIndex(v => v.includes("HSCODE") || v.includes("HS CODE") || v.includes("KODE HS") || v === "HS");
-            
-            if(idxNama !== -1 && idxHS !== -1) {
-                headerIdx = r; colNama = idxNama; colHS = idxHS;
-                break;
-            }
+            let idxNama = rData.findIndex(v => v.includes("NAMA BARANG") || v === "DESKRIPSI BARANG" || v === "BARANG");
+            let idxHS = rData.findIndex(v => v.includes("HSCODE") || v.includes("HS CODE") || v === "HS");
+            if(idxNama !== -1 && idxHS !== -1) { headerIdx = r; colNama = idxNama; colHS = idxHS; break; }
         }
 
         if(headerIdx === -1) {
@@ -224,15 +218,13 @@
             return;
         }
 
-        updateUI(30, "Mengecek database lokal...");
+        updateUI(25, "Mengecek database lokal...");
 
         let itemsToSearch = [];
         let rowMap = {};
 
-        // Tahap 1: Pencarian Lokal Offline
         for(let r = headerIdx + 1; r < rows.length; r++) {
             if (!rows[r] || !Array.isArray(rows[r])) continue;
-            
             let rawVal = rows[r][colNama];
             if (rawVal === undefined || rawVal === null) continue;
             
@@ -257,7 +249,7 @@
             }
         }
 
-        // Tahap 2: AI Online Search dengan Auto-Route Recovery
+        // Tahap 2: AI Online Search dengan Micro-Batching Tersembunyi (Anti JSON Error)
         if (itemsToSearch.length > 0) {
             if (!geminiApiKey) {
                 showWarning("⚠️ Ada barang baru. Masukkan API Key baru di atas untuk analisis online otomatis, atau download hasil sementara di bawah ini.");
@@ -265,26 +257,35 @@
                 return;
             }
 
-            updateUI(65, `AI sedang menganalisis ${itemsToSearch.length} barang baru online...`);
-            const results = await callGeminiAI(itemsToSearch);
+            updateUI(50, `AI sedang menganalisis ${itemsToSearch.length} barang baru online...`);
             
-            if (results) {
-                for (let item in results) {
-                    if (rowMap[item]) {
-                        rowMap[item].forEach(idx => {
-                            while (rows[idx].length <= colHS) rows[idx].push("");
-                            rows[idx][colHS] = results[item];
-                        });
+            // Memecah payload diam-diam agar AI tidak tersedak (JSON tidak putus)
+            const batchSize = 15;
+            for (let i = 0; i < itemsToSearch.length; i += batchSize) {
+                const batch = itemsToSearch.slice(i, i + batchSize);
+                const results = await callGeminiAI(batch);
+                
+                if (results) {
+                    for (let item in results) {
+                        const upperItem = item.toUpperCase();
+                        if (rowMap[upperItem]) {
+                            rowMap[upperItem].forEach(idx => {
+                                while (rows[idx].length <= colHS) rows[idx].push("");
+                                rows[idx][colHS] = results[item];
+                            });
+                        }
                     }
                 }
-            } else {
-                showWarning("⚠️ Koneksi AI terhambat. Untuk hasil terbaik, harap pastikan API Key Anda aktif. Dokumen berhasil diunduh menggunakan basis data lokal.");
+                // Progress bar bergerak dinamis menyesuaikan batch
+                const currentProgress = Math.floor(50 + ((i + batchSize) / itemsToSearch.length * 50));
+                updateUI(currentProgress > 100 ? 100 : currentProgress, `Menyinkronkan data...`);
             }
         }
 
         finishProcess(rows, wb);
     }
 
+    // ALGORITMA MURNI v4.9 (Multi-Route + Safe JSON Parser)
     async function callGeminiAI(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
@@ -294,7 +295,6 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        // Mencoba beberapa kombinasi Model dan Rute Endpoint secara berurutan
         const models = ["gemini-2.5-flash", "gemini-1.5-flash"];
         const versions = ["v1beta", "v1"];
         
@@ -307,13 +307,11 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            contents: [{ parts: [{ text: prompt }] }] // Menyederhanakan payload kiriman untuk menghindari 400 Bad Request
+                            contents: [{ parts: [{ text: prompt }] }] 
                         })
                     });
                     
-                    // Jika ditolak dengan status 404 atau 400, abaikan dan coba rute berikutnya di antrean
-                    if (response.status === 404 || response.status === 400) {
-                        console.warn(`Rute ${version}/${model} mengembalikan status ${response.status}, mencoba rute cadangan...`);
+                    if (response.status === 404 || response.status === 400 || response.status === 403) {
                         continue; 
                     }
 
@@ -322,22 +320,29 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
                     }
 
                     const resData = await response.json();
+                    if (!resData.candidates || !resData.candidates[0]) continue;
                     let rawText = resData.candidates[0].content.parts[0].text;
                     
-                    // Ekstraktor JSON dengan Regex (Lebih aman dari kebocoran tag markdown)
-                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                        return JSON.parse(jsonMatch[0]);
+                    // JSON Parser yang dilindungi blok try-catch agar tidak memunculkan 'Uncaught Promise'
+                    try {
+                        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            return JSON.parse(jsonMatch[0]);
+                        }
+                        
+                        rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                        return JSON.parse(rawText);
+                    } catch (parseError) {
+                        console.warn("JSON AI terpotong, beralih ke rute cadangan...");
+                        // Jika JSON terpotong, abaikan dan coba rute berikutnya agar tidak crash
+                        continue;
                     }
-                    
-                    rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    return JSON.parse(rawText);
                 } catch (e) {
                     console.warn(`Koneksi gagal pada rute ${version}/${model}:`, e.message);
                 }
             }
         }
-        return null; // Mengembalikan null secara anggun jika seluruh rute gagal, mencegah sistem crash
+        return null;
     }
 
     function finishProcess(rows, wb) {
@@ -357,6 +362,12 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
         document.getElementById('itemStatus').innerText = txt;
     }
 
+    function showWarning(msg) {
+        const warnEl = document.getElementById('warningMessage');
+        warnEl.innerText = msg;
+        warnEl.style.display = 'block';
+    }
+
     function showCriticalError(msg) {
         document.getElementById('statusMessage').innerHTML = `<span style="color: #EF4123;">❌ PROSES TERHENTI</span>`;
         document.getElementById('itemStatus').innerHTML = `<span style="color: #EF4123; font-weight: bold;">Kendala: ${msg}</span>`;
@@ -365,7 +376,7 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_" + originalName);
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_COMPLETE_v4.9.xlsx");
         setTimeout(() => location.reload(), 1500);
     }
 </script>
