@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v5.5 - PosIND Batam</title>
+    <title>AI Automation HS Code v5.6 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -63,7 +63,7 @@
         .searching-text { color: #64748B; font-weight: 600; font-size: 14px; }
 
         /* Warnings */
-        #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid #F59E0B; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 14px; }
+        #warningMessage { display: none; background: #FEF2F2; border-left: 5px solid #EF4444; color: #991B1B; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 14px; font-weight: 600; }
 
         .btn-download {
             display: none; background: var(--pos-delft-blue); color: white; border: none;
@@ -98,7 +98,7 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p id="uploadStatus" style="font-size: 20px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
-            <p style="font-size: 14px; color: #94A3B8;">Otomatis mengisi 8-digit BTKI dengan Auto-Retry (Anti Server Down)</p>
+            <p style="font-size: 14px; color: #94A3B8;">Otomatis mengisi 8-digit BTKI dengan Diagnostic Log X-Ray</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
@@ -113,7 +113,7 @@
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
         
-        <div class="footer-info">Logistics AI Automation System v5.5 • Pos Indonesia KCU Batam</div>
+        <div class="footer-info">Logistics AI Automation System v5.6 • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
@@ -127,7 +127,7 @@
             label.innerHTML = `🔑 Status API Key: <span style="color: #28a745;">Aktif (${maskedKey})</span>`;
             document.getElementById('apiKeyInput').value = geminiApiKey;
         } else {
-            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset (Segera Masukkan Kunci Baru)</span>`;
+            label.innerHTML = `🔑 Status API Key: <span style="color: #EF4123;">Belum Diset</span>`;
             document.getElementById('apiKeyInput').value = "";
         }
     }
@@ -140,7 +140,7 @@
             localStorage.setItem('secure_gemini_key_v5', key);
             geminiApiKey = key;
             updateApiStatusUI();
-            alert("✅ API Key baru berhasil disimpan secara aman di browser!");
+            alert("✅ API Key berhasil disimpan!");
             document.getElementById('warningMessage').style.display = 'none';
         } else {
             alert("Harap masukkan API Key yang valid.");
@@ -151,10 +151,9 @@
         localStorage.removeItem('secure_gemini_key_v5');
         geminiApiKey = "";
         updateApiStatusUI();
-        alert("🗑️ Memori kunci dihapus! Silakan masukkan kunci baru Anda.");
+        alert("🗑️ Kunci dihapus!");
     }
 
-    // Database Offline Komplet (Instan)
     const OFFLINE_DB = {
         'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
         'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
@@ -257,25 +256,24 @@
                 const currentProgress = Math.min(i + batchSize, total);
                 
                 document.getElementById('progressCounter').innerText = `${currentProgress} dari ${total}`;
-                document.getElementById('statusMessage').innerText = `MENGHUBUNGI AI UNTUK KELOMPOK BARANG...`;
                 document.getElementById('pBar').style.width = (currentProgress / total * 100) + "%";
                 
                 await new Promise(resolve => setTimeout(resolve, 50));
 
-                const results = await callAIWithRetry(batch);
+                const resultObj = await callAIDiagnostic(batch);
                 
-                if (results) {
-                    for (let item in results) {
+                if (resultObj && resultObj.data) {
+                    for (let item in resultObj.data) {
                         const uppercaseItem = item.toUpperCase();
                         if (rowMap[uppercaseItem]) {
                             rowMap[uppercaseItem].forEach(idx => {
                                 while (rows[idx].length <= colHS) rows[idx].push("");
-                                rows[idx][colHS] = results[item];
+                                rows[idx][colHS] = resultObj.data[item];
                             });
                         }
                     }
-                } else {
-                    showWarning("⚠️ Proses AI terhenti. Server Google API sedang mengalami gangguan (Error 503). Hasil yang berhasil dianalisis offline dapat diunduh.");
+                } else if (resultObj && resultObj.error) {
+                    showWarning(`❌ DITOLAK OLEH GOOGLE (Error ${resultObj.status})<br><br>Alasan Teknis: <i>"${resultObj.error}"</i><br><br>Silakan ganti API Key Anda atau cek penagihan di Google Cloud Console.`);
                     break; 
                 }
             }
@@ -284,8 +282,8 @@
         updateUIFinal(rows, wb);
     }
 
-    // Algoritma Pintar: Auto-Retry Khusus untuk Server Sibuk (503/500)
-    async function callAIWithRetry(items) {
+    // ALGORITMA X-RAY DIAGNOSTIC (Menangkap Pesan Error Asli)
+    async function callAIDiagnostic(items) {
         const uniqueItems = [...new Set(items)];
         const prompt = `Berperanlah sebagai ahli klasifikasi bea cukai (Customs Officer) Indonesia. 
 Tentukan kode HS 8-digit BTKI yang paling tepat untuk barang kargo berikut. 
@@ -294,54 +292,52 @@ Key adalah nama barang (uppercase), Value adalah kode HS format XXXX.XX.XX.
 
 Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
-        // Fokus pada rute paling stabil untuk menghindari Error 400
-        const versions = ["v1beta", "v1"];
-        const maxRetries = 2; // Maksimal coba ulang 2 kali per rute jika server sibuk
-        
-        for (let version of versions) {
-            const url = `https://generativelanguage.googleapis.com/${version}/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
-            
-            for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                try {
-                    document.getElementById('itemStatus').innerText = attempt > 0 ? `Server sibuk. Mengulangi permintaan (Percobaan ${attempt}/${maxRetries})...` : "Menghubungkan ke Google AI...";
-                    
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-                    
-                    // Jika server down/penuh, tunggu beberapa detik lalu coba tembak lagi
-                    if (response.status === 503 || response.status === 500) {
-                        console.warn(`Server sibuk (503). Menunggu sebelum mencoba lagi...`);
-                        await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // Jeda 2 detik, lalu 4 detik
-                        continue; 
-                    }
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+        let lastError = null;
+        let lastStatus = null;
 
-                    // Jika error bawaan (API Key salah/limit), jangan diulang, langsung keluar
-                    if (response.status === 404 || response.status === 400 || response.status === 403) {
-                        break; 
-                    }
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                document.getElementById('itemStatus').innerText = attempt > 1 ? `Mencoba ulang koneksi (Percobaan ${attempt}/3)...` : "Menghubungkan ke Google AI...";
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                
+                // Jika server penuh (503), beri jeda lalu coba lagi
+                if (response.status === 503 || response.status === 500) {
+                    lastStatus = response.status;
+                    lastError = "Server Google AI sedang penuh atau down (503/500).";
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+                    continue; 
+                }
 
-                    if (!response.ok) break;
+                // Jika error 400 (Bad Request) / 403 / 404, TANGKAP PESAN ASLINYA lalu stop
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    const errorMessage = errorData.error ? errorData.error.message : `HTTP Error ${response.status}`;
+                    return { error: errorMessage, status: response.status };
+                }
 
-                    const resData = await response.json();
-                    let rawText = resData.candidates[0].content.parts[0].text;
-                    
-                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) return JSON.parse(jsonMatch[0]);
-                    
-                    rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    return JSON.parse(rawText);
-                } catch (e) {
-                    // Jika gagal jaringan, tunggu dan coba lagi
-                    if (attempt < maxRetries) {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
+                const resData = await response.json();
+                let rawText = resData.candidates[0].content.parts[0].text;
+                
+                const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) return { data: JSON.parse(jsonMatch[0]) };
+                
+                rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                return { data: JSON.parse(rawText) };
+            } catch (e) {
+                lastError = e.message;
+                lastStatus = "Network";
+                if (attempt < 3) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                 }
             }
         }
-        return null;
+        return { error: lastError, status: lastStatus };
     }
 
     function updateUIFinal(rows, wb) {
@@ -358,15 +354,8 @@ Daftar barang: ${JSON.stringify(uniqueItems)}`;
 
     function showWarning(msg) {
         const warnEl = document.getElementById('warningMessage');
-        warnEl.innerText = msg;
+        warnEl.innerHTML = msg; // Pakai innerHTML agar bisa render tag <br> dan <i>
         warnEl.style.display = 'block';
-    }
-
-    function showCriticalError(msg) {
-        document.getElementById('statusMessage').innerHTML = `<span style="color: #EF4123;">❌ PROSES TERHENTI</span>`;
-        document.getElementById('itemStatus').innerHTML = `<span style="color: #EF4123; font-weight: bold;">Kendala: ${msg}</span>`;
-        document.getElementById('pBar').style.backgroundColor = '#EF4123';
-        document.getElementById('pBar').style.width = '100%';
     }
 
     function downloadResult() {
