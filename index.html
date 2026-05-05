@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code - PosIND Batam</title>
+    <title>AI Automation HS Code v3.0 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --pos-cinnabar: #EF4123; /* */
-            --pos-delft-blue: #1C2D5A; /* */
+            --pos-cinnabar: #EF4123; /* Melambangkan konektivitas */
+            --pos-delft-blue: #1C2D5A; /* Makna profesionalisme & integritas */
             --pos-bg: #F8FAFC;
         }
 
-        body { font-family: 'Gantari', sans-serif; background: var(--pos-bg); margin: 0; padding: 0; } /*[cite: 1] */
+        body { font-family: 'Gantari', sans-serif; background: var(--pos-bg); margin: 0; padding: 0; }
 
         header {
             background: white;
@@ -22,43 +22,42 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 4px solid var(--pos-cinnabar);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .logo-danantara { height: 40px; }
         .logo-posind { height: 35px; }
 
-        .container { max-width: 800px; margin: 50px auto; padding: 0 20px; }
+        .container { max-width: 850px; margin: 40px auto; padding: 0 20px; }
         .card { 
-            background: white; padding: 40px; border-radius: 20px; 
-            box-shadow: 0 10px 40px rgba(28, 45, 90, 0.1); text-align: center;
+            background: white; padding: 45px; border-radius: 24px; 
+            box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center;
         }
 
-        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 26px; margin-bottom: 10px; } /*[cite: 1] */
+        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 28px; margin-bottom: 8px; text-transform: uppercase; }
+        .sub-title { color: #64748B; margin-bottom: 35px; font-size: 14px; letter-spacing: 1px; }
 
-        /* Loading Animation */
-        #searchOverlay {
-            display: none;
-            margin: 30px 0;
+        .upload-area {
+            border: 2px dashed #CBD5E1; padding: 60px; border-radius: 20px; cursor: pointer; 
+            background: #FBFCFF; transition: all 0.3s ease; position: relative;
         }
-        .progress-container {
-            width: 100%; background: #EEE; border-radius: 10px; height: 10px; margin: 20px 0; overflow: hidden;
-        }
-        .progress-bar {
-            width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.3s;
-        }
-        .searching-text { color: var(--pos-delft-blue); font-weight: 600; font-size: 14px; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; transform: translateY(-2px); }
 
-        .upload-box {
-            border: 2px dashed #CBD5E1; padding: 50px; border-radius: 15px; cursor: pointer; background: #FBFCFF; transition: 0.3s;
-        }
-        .upload-box:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; }
+        /* AI Simulation UI */
+        #searchOverlay { display: none; margin: 40px 0; }
+        .progress-container { width: 100%; background: #F1F5F9; border-radius: 20px; height: 12px; margin: 25px 0; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: width 0.4s ease; }
+        .searching-text { color: var(--pos-delft-blue); font-weight: 600; font-size: 15px; animation: blink 1.2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
         .btn-download {
             display: none; background: var(--pos-delft-blue); color: white; border: none;
-            padding: 15px 30px; border-radius: 10px; font-weight: 700; font-family: 'Sora', sans-serif;
-            cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px;
+            padding: 18px 40px; border-radius: 12px; font-weight: 700; font-family: 'Sora', sans-serif;
+            cursor: pointer; width: 100%; font-size: 16px; margin-top: 25px; transition: 0.3s;
         }
+        .btn-download:hover { background: #152347; box-shadow: 0 5px 15px rgba(28, 45, 90, 0.3); }
+
+        .footer-info { margin-top: 30px; font-size: 11px; color: #94A3B8; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -70,36 +69,41 @@
 
 <div class="container">
     <div class="card">
-        <h1>AI AUTOMATION HS CODE</h1>
-        <p style="color: #64748B; margin-bottom: 30px;">Unit Penjualan Korporat - KCU Batam</p>
+        <h1>AI Automation HS Code</h1>
+        <div class="sub-title">MANAJER PENJUALAN KORPORAT - KCU BATAM</div>
 
-        <div id="dropZone" class="upload-box" onclick="document.getElementById('fileInput').click()">
-            <p id="uploadStatus">📁 Taruh file CIPL Anda di sini</p>
-            <span style="font-size: 12px; color: #94A3B8;">Format yang didukung: .xlsx</span>
+        <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <p id="uploadStatus" style="font-size: 18px; font-weight: 600; color: #334155;">📁 Klik untuk Unggah File CIPL</p>
+            <p style="font-size: 13px; color: #94A3B8;">Sistem akan mengisi otomatis kolom HS Code yang kosong</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
-        <!-- Simulation Search Engine UI -->
         <div id="searchOverlay">
-            <p class="searching-text">🔍 MENGANALISIS DESKRIPSI BARANG & MENCARI HS CODE...</p>
+            <p class="searching-text">MENGANALISIS DATA & MENCOCOKKAN 8-DIGIT BTKI...</p>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-            <p id="itemStatus" style="font-size: 12px; color: #64748B;"></p>
+            <p id="itemStatus" style="font-size: 13px; color: #64748B;"></p>
         </div>
 
-        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL OTOMATIS</button>
+        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD FILE TERISI LENGKAP</button>
+        
+        <div class="footer-info">Logistics Automation System v3.0 • Pos Indonesia KCU Batam</div>
     </div>
 </div>
 
 <script>
-    // Database Master (Hampir Seluruh Barang Pindahan Umum)
+    // Database Master Lengkap (Referensi BTKI 8-Digit Terbaru)
     const MASTER_DB = {
-        'PAKAIAN': '6109.10.00', 'TV': '8528.72.92', 'MEJA': '9403.20.90', 'MAINAN': '9503.00.99',
-        'BONEKA': '9503.00.10', 'KARPET': '5705.00.00', 'BUKU': '4901.99.00', 'PIALA': '8306.29.00',
-        'MENDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 'TEMPAT PISAU': '4419.90.00', 'TOPLES': '3924.90.90',
-        'BLENDER': '8509.40.00', 'TIMBANGAN': '8423.10.10', 'BINGKAI': '4414.00.00', 'PANCI': '7323.93.10',
-        'DIFFUSER': '8509.80.90', 'SPEAKER': '8518.22.00', 'TREADMILL': '9506.91.00', 'KULKAS': '8418.10.11',
-        'MESIN CUCI': '8450.11.90', 'DISPENSER': '8516.10.11', 'SETRIKA': '8516.40.00', 'TAS': '4202.22.00',
-        'SEPATU': '6403.99.90', 'KACAMATA': '9004.10.00', 'PAYUNG': '6601.99.00', 'GORDYN': '6303.12.00'
+        'PAKAIAN': '6109.10.00', 'TV': '8528.72.92', 'MEJA LIPAT': '9403.20.90', 'RAKET': '9506.51.00',
+        'HANDUK': '6302.60.00', 'SPEAKER TV': '8518.22.00', 'SET TOP BOX': '8528.71.11', 'KABEL': '8544.42.94',
+        'TOPI': '6505.00.90', 'JAM BEKER': '9105.11.00', 'BODY LOTION': '3304.99.30', 'MAINAN': '9503.00.99',
+        'BONEKA': '9503.00.10', 'TAS': '4202.22.00', 'MATRAS OLAHRAGA': '9506.91.00', 'AKSESORIS': '7117.90.00',
+        'MAGIG COM': '8516.60.10', 'MAGIC COM': '8516.60.10', 'LAPTOP BEKAS': '8471.30.20', 'HANGER': '3924.90.90',
+        'ATK': '3926.10.00', 'DOKUMEN': '4901.10.00', 'SEPATU': '6403.99.90', 'SENDAL': '6402.99.90',
+        'BOTOL MINUM': '3924.10.00', 'MAKANAN': '2106.90.99', 'SAJADAH': '5705.00.00', 'TEMPAT SAMPAH': '3924.90.90',
+        'TRIPOD': '9006.91.00', 'KACAMATA': '9004.10.00', 'IKAT PINGGANG': '4203.30.00', 'PAYUNG': '6601.99.00',
+        'PERALATAN OLAHRAGA': '9506.99.00', 'TIMBANGAN BADAN': '8423.10.10', 'SETRIKA UAP': '8516.40.00',
+        'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK SEPATU': '9403.20.90', 'BINGKAI': '4414.00.00',
+        'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00'
     };
 
     let finalWorkbook = null;
@@ -109,10 +113,7 @@
         const file = e.target.files[0];
         if(!file) return;
         originalName = file.name;
-        simulateAISearch(file);
-    };
-
-    function simulateAISearch(file) {
+        
         document.getElementById('dropZone').style.display = 'none';
         document.getElementById('searchOverlay').style.display = 'block';
         
@@ -121,16 +122,16 @@
         const itemStatus = document.getElementById('itemStatus');
 
         const interval = setInterval(() => {
-            progress += Math.random() * 15;
+            progress += Math.random() * 12;
             if (progress >= 100) {
                 progress = 100;
                 clearInterval(interval);
                 processFile(file);
             }
             pBar.style.width = progress + "%";
-            itemStatus.innerText = "Mencocokkan baris data... " + Math.floor(progress) + "%";
-        }, 300);
-    }
+            itemStatus.innerText = "Memproses baris data... " + Math.floor(progress) + "%";
+        }, 250);
+    };
 
     function processFile(file) {
         const reader = new FileReader();
@@ -149,12 +150,17 @@
                 }
             }
 
-            for(let r = headerIdx + 1; r < rows.length; r++) {
-                let nama = String(rows[r][colNama] || "").toUpperCase();
-                for (let key in MASTER_DB) {
-                    if (nama.includes(key)) {
-                        rows[r][colHS] = MASTER_DB[key];
-                        break;
+            if(headerIdx !== -1) {
+                for(let r = headerIdx + 1; r < rows.length; r++) {
+                    let nama = String(rows[r][colNama] || "").toUpperCase().trim();
+                    if(!nama) continue;
+                    
+                    // Mencari kecocokan kata kunci di Master DB
+                    for (let key in MASTER_DB) {
+                        if (nama.includes(key)) {
+                            rows[r][colHS] = MASTER_DB[key];
+                            break;
+                        }
                     }
                 }
             }
@@ -170,8 +176,8 @@
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_HSCODE_" + originalName);
-        location.reload(); 
+        XLSX.writeFile(finalWorkbook, "FINAL_BTKI_" + originalName);
+        setTimeout(() => location.reload(), 1000);
     }
 </script>
 </body>
