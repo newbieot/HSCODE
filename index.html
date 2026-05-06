@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v9.0 - PosIND Batam</title>
+    <title>AI Automation HS Code v9.1 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -35,7 +35,8 @@
         
         label { display: block; font-weight: 600; font-size: 12px; color: var(--pos-delft-blue); margin-bottom: 8px; text-transform: uppercase; }
         input { width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; box-sizing: border-box; margin-bottom: 10px; }
-        .btn-save { background: var(--pos-delft-blue); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
+        .btn-save { background: var(--pos-delft-blue); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
+        .btn-save:hover { background: #152347; }
         
         .upload-area { border: 2px dashed #CBD5E1; padding: 50px; border-radius: 20px; cursor: pointer; background: #FBFCFF; transition: 0.3s; }
         .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; }
@@ -46,7 +47,10 @@
         
         .memory-tag { display: inline-block; background: #ECFDF5; color: #065F46; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 20px; border: 1px solid #10B981; }
         
+        #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid #F59E0B; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 13px; font-weight: 600; }
+
         .btn-download { display: none; background: var(--pos-delft-blue); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 20px; }
+        .btn-download:hover { background: #152347; box-shadow: 0 5px 15px rgba(28, 45, 90, 0.3); }
         .footer-info { margin-top: 30px; font-size: 10px; color: #94A3B8; }
     </style>
 </head>
@@ -64,7 +68,7 @@
 
         <div class="setup-grid">
             <div class="setup-box">
-                <label>⚡ Mesin Groq API (Llama 3)</label>
+                <label style="color:#ea580c;">⚡ Mesin Groq API (Llama 3)</label>
                 <input type="password" id="groqKey" placeholder="gsk_...">
                 <button class="btn-save" onclick="saveSettings()">Simpan Konfigurasi</button>
             </div>
@@ -79,18 +83,20 @@
 
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
             <p style="font-size: 16px; font-weight: 600;">📁 Unggah CIPL untuk Sinkronisasi</p>
-            <p style="font-size: 12px; color: #94A3B8;">Web akan belajar otomatis dan menyimpan ke GitHub Bapak</p>
+            <p style="font-size: 12px; color: #94A3B8;">Menggunakan Mode Hybrid (Offline DB + GitHub Cloud + AI Groq)</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
+        <div id="warningMessage"></div>
+
         <div id="searchOverlay">
-            <div id="progressCounter" style="font-weight: 700; color: var(--pos-delft-blue);">0%</div>
+            <div id="progressCounter" style="font-weight: 700; color: var(--pos-delft-blue); font-size: 20px;">Memulai Proses...</div>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-            <p id="itemStatus" style="font-size: 11px; color: #64748B;"></p>
+            <p id="itemStatus" style="font-size: 12px; color: #64748B;"></p>
         </div>
 
         <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL SINKRONISASI</button>
-        <div class="footer-info">v9.0 Cloud Memory Engine • Kantor Pos Batam</div>
+        <div class="footer-info">v9.1 Hybrid Cloud Engine (Bug Fixed) • Kantor Pos Batam</div>
     </div>
 </div>
 
@@ -99,21 +105,38 @@
     let cloudDB = {};
     let fileSha = "";
 
-    // Isi input jika sudah ada di memori browser
     document.getElementById('groqKey').value = settings.groq;
     document.getElementById('ghRepo').value = settings.repo;
     document.getElementById('ghToken').value = settings.token;
+
+    // Database Offline Komplet yang kemarin tidak sengaja terhapus
+    const OFFLINE_DB = {
+        'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
+        'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
+        'HANDUK': '6302.60.00', 'SPEAKER': '8518.22.00', 'SET TOP BOX': '8528.71.11', 'STB': '8528.71.11', 'KABEL': '8544.42.94',
+        'TOPI': '6505.00.90', 'JAM BEKER': '9105.11.00', 'JAM': '9105.11.00', 'BODY LOTION': '3304.99.30', 'LOTION': '3304.99.30', 
+        'MAINAN': '9503.00.99', 'BONEKA': '9503.00.10', 'TAS': '4202.22.00', 'MATRAS': '9506.91.00', 'AKSESORIS': '7117.90.00',
+        'MAGIG COM': '8516.60.10', 'MAGIC COM': '8516.60.10', 'RICE COOKER': '8516.60.10', 'LAPTOP': '8471.30.20', 'KOMPUTER': '8471.30.20',
+        'HANGER': '3924.90.90', 'ATK': '3926.10.00', 'ALAT TULIS': '3926.10.00', 'DOKUMEN': '4901.10.00', 'SEPATU': '6403.99.90', 
+        'SENDAL': '6402.99.90', 'SANDAL': '6402.99.90', 'BOTOL MINUM': '3924.10.00', 'BOTOL AIR': '3924.10.00', 'BOTOL': '3924.10.00', 
+        'MAKANAN': '2106.90.99', 'SAJADAH': '5705.00.00', 'TEMPAT SAMPAH': '3924.90.90', 'TRIPOD': '9006.91.00', 'KACAMATA': '9004.10.00', 
+        'IKAT PINGGANG': '4203.30.00', 'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
+        'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
+        'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
+        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11', 'KARPET': '5705.00.00', 'MENDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 
+        'TEMPAT PISAU': '4419.90.00', 'TOPLES': '3924.90.90', 'BLENDER MINI': '8509.40.00', 'TIMBANGAN BADAN': '8423.10.10',
+        'PAMPERS': '9619.00.10', 'SARUNG BANTAL': '6302.21.00', 'MUKENA': '6211.11.90', 'BAJU RENANG': '6112.31.10', 'SETRIKA UAP': '8516.40.20'
+    };
 
     function saveSettings() {
         settings.groq = document.getElementById('groqKey').value.trim();
         settings.repo = document.getElementById('ghRepo').value.trim();
         settings.token = document.getElementById('ghToken').value.trim();
         localStorage.setItem('pos_batam_config', JSON.stringify(settings));
-        alert("Konfigurasi berhasil disimpan. Web siap mensinkronkan data.");
+        alert("✅ Konfigurasi berhasil disimpan. Web siap bekerja!");
         loadCloudDatabase();
     }
 
-    // Fungsi memuat database dari GitHub
     async function loadCloudDatabase() {
         if(!settings.repo || !settings.token) return;
         try {
@@ -123,9 +146,9 @@
             const data = await res.json();
             fileSha = data.sha;
             cloudDB = JSON.parse(atob(data.content));
-            document.getElementById('memStatus').innerText = `🧠 Memori Cloud: ${Object.keys(cloudDB).length} Barang Terdaftar`;
+            document.getElementById('memStatus').innerText = `🧠 Memori Cloud Terhubung: ${Object.keys(cloudDB).length} Barang Dipelajari`;
         } catch(e) {
-            document.getElementById('memStatus').innerText = "⚠️ Database Cloud Tidak Ditemukan";
+            document.getElementById('memStatus').innerText = "⚠️ Database Cloud Belum Siap / Kosong";
         }
     }
 
@@ -135,67 +158,114 @@
 
     document.getElementById('fileInput').onchange = function(e) {
         const file = e.target.files[0];
-        if(!file || !settings.groq) { alert("Cek kembali file dan API Key!"); return; }
+        if(!file || !settings.groq) { alert("⚠️ Pastikan file Excel dipilih dan Kunci Groq sudah disimpan!"); return; }
         
         document.getElementById('dropZone').style.display = 'none';
         document.getElementById('searchOverlay').style.display = 'block';
+        document.getElementById('warningMessage').style.display = 'none';
         
         const reader = new FileReader();
         reader.onload = async function(ev) {
             const wb = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
-            await processExcel(wb);
+            await processExcelHybrid(wb);
         };
         reader.readAsArrayBuffer(file);
     };
 
-    async function processExcel(wb) {
+    async function processExcelHybrid(wb) {
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
 
         let headerIdx = -1, colNama = -1, colHS = -1;
         for(let r=0; r<rows.length; r++){
-            let rData = rows[r].map(v => String(v).toUpperCase());
+            if (!rows[r] || !Array.isArray(rows[r])) continue;
+            let rData = rows[r].map(v => String(v || "").toUpperCase().trim());
             if(rData.includes("NAMA BARANG") || rData.includes("DESKRIPSI BARANG")){
                 headerIdx = r;
-                colNama = rData.findIndex(v => v.includes("BARANG"));
-                colHS = rData.findIndex(v => v.includes("HS"));
+                colNama = rData.findIndex(v => v.includes("NAMA BARANG") || v === "BARANG");
+                colHS = rData.findIndex(v => v.includes("HSCODE") || v.includes("HS CODE") || v === "HS");
                 break;
             }
         }
 
-        let newItems = [];
-        let needsAI = [];
+        if(headerIdx === -1) { alert("Header NAMA BARANG atau HSCODE tidak ditemukan!"); location.reload(); return; }
 
-        for(let r=headerIdx+1; r<rows.length; r++){
+        let needsAI = [];
+        let rowMap = {};
+        
+        // PENGGABUNGAN KEKUATAN: OFFLINE DB + CLOUD DB
+        const COMBINED_DB = { ...OFFLINE_DB, ...cloudDB };
+
+        for(let r = headerIdx + 1; r < rows.length; r++){
             let nama = String(rows[r][colNama] || "").trim().toUpperCase();
-            if(!nama) continue;
+            if(!nama || nama === "NAN") continue;
             
-            if(cloudDB[nama]) {
-                rows[r][colHS] = cloudDB[nama];
-            } else {
-                needsAI.push(nama);
+            let matched = false;
+            // Pencarian cerdas (mencakup kecocokan sebagian kata seperti "TRIPOD KAMERA" dll)
+            for(let key in COMBINED_DB) {
+                if(nama.includes(key) || key.includes(nama)) { 
+                    while (rows[r].length <= colHS) rows[r].push("");
+                    rows[r][colHS] = COMBINED_DB[key]; 
+                    matched = true; 
+                    break; 
+                }
+            }
+
+            let currentHS = rows[r][colHS] ? String(rows[r][colHS]).trim() : "";
+            if(!matched && currentHS === "") {
+                if(!rowMap[nama]) { needsAI.push(nama); rowMap[nama] = []; }
+                rowMap[nama].push(r);
             }
         }
 
-        if(needsAI.length > 0) {
-            const uniqueNeeds = [...new Set(needsAI)];
-            const batchSize = 15;
-            for(let i=0; i<uniqueNeeds.length; i+=batchSize){
-                const batch = uniqueNeeds.slice(i, i+batchSize);
-                document.getElementById('itemStatus').innerText = `AI sedang mempelajari: ${batch.join(", ")}`;
+        const totalItems = needsAI.length;
+        document.getElementById('progressCounter').innerText = `Menemukan ${totalItems} Barang Baru`;
+
+        let hasNewCloudData = false;
+
+        if(totalItems > 0) {
+            // Groq Llama 3 sangat kuat, kita sikat 20 barang per batch
+            const batchSize = 20;
+            for(let i=0; i<totalItems; i+=batchSize){
+                const batch = needsAI.slice(i, i+batchSize);
+                const currentProgress = Math.min(i + batchSize, totalItems);
+                
+                document.getElementById('pBar').style.width = (currentProgress / totalItems * 100) + "%";
+                document.getElementById('progressCounter').innerText = `Menganalisis ${currentProgress} / ${totalItems}`;
+                document.getElementById('itemStatus').innerText = `Menghubungi AI Groq...`;
                 
                 const result = await callGroq(batch);
+                
                 if(result){
-                    Object.assign(cloudDB, result);
-                    // Terapkan ke baris Excel
-                    for(let r=headerIdx+1; r<rows.length; r++){
-                        let n = String(rows[r][colNama]).toUpperCase();
-                        if(result[n]) rows[r][colHS] = result[n];
+                    for(let item in result) {
+                        const uppercaseItem = item.toUpperCase();
+                        
+                        // 1. Tulis ke Excel
+                        if(rowMap[uppercaseItem]) {
+                            rowMap[uppercaseItem].forEach(idx => {
+                                while (rows[idx].length <= colHS) rows[idx].push("");
+                                rows[idx][colHS] = result[item];
+                            });
+                        }
+
+                        // 2. Tandai untuk disimpan ke GitHub (Jika benar-benar baru)
+                        if (!COMBINED_DB[uppercaseItem] && !cloudDB[uppercaseItem]) {
+                            cloudDB[uppercaseItem] = result[item];
+                            hasNewCloudData = true;
+                        }
                     }
+                } else {
+                    document.getElementById('warningMessage').innerText = "⚠️ Peringatan: Ada koneksi AI yang gagal. Beberapa baris mungkin kosong.";
+                    document.getElementById('warningMessage').style.display = 'block';
                 }
             }
-            // Update GitHub secara otomatis setelah semua batch selesai
-            await updateGitHubDatabase();
+            
+            // Simpan yang baru dipelajari ke GitHub
+            if (hasNewCloudData) {
+                await updateGitHubDatabase();
+            }
+        } else {
+            document.getElementById('pBar').style.width = "100%";
         }
 
         const newSheet = XLSX.utils.aoa_to_sheet(rows);
@@ -211,7 +281,7 @@
                 headers: { 'Authorization': `Bearer ${settings.groq}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: "llama-3.3-70b-versatile",
-                    messages: [{ role: "system", content: "Tentukan HS Code 8-digit BTKI. WAJIB HURUF KAPITAL. Output JSON murni: {NAMA: HS}" },
+                    messages: [{ role: "system", content: "Sebagai ahli bea cukai. Tentukan HS Code 8-digit BTKI. Output WAJIB JSON murni {NAMA BARANG: XXXX.XX.XX}. HURUF KAPITAL." },
                                { role: "user", content: JSON.stringify(items) }],
                     response_format: { type: "json_object" }
                 })
@@ -223,29 +293,31 @@
 
     async function updateGitHubDatabase() {
         if(!settings.repo || !settings.token) return;
-        document.getElementById('itemStatus').innerText = "💾 Menyimpan pengetahuan baru ke GitHub...";
+        document.getElementById('itemStatus').innerText = "💾 Mengunggah pengetahuan baru ke Cloud GitHub...";
         try {
             await fetch(`https://api.github.com/repos/${settings.repo}/contents/database.json`, {
                 method: 'PUT',
                 headers: { 'Authorization': `token ${settings.token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: "Update database otomatis - Pengetahuan Baru",
+                    message: "Auto-sync HS Code: Menambah kosa kata baru dari AI",
                     content: btoa(JSON.stringify(cloudDB, null, 2)),
                     sha: fileSha
                 })
             });
-            await loadCloudDatabase(); // Segarkan SHA dan UI
-        } catch(e) { console.error("Gagal simpan cloud"); }
+            await loadCloudDatabase(); // Refresh SHA setelah berhasil
+        } catch(e) { console.error("Gagal simpan ke GitHub"); }
     }
 
     function finishUI() {
-        document.getElementById('searchOverlay').style.display = 'none';
+        document.getElementById('progressCounter').innerText = "SINKRONISASI SELESAI!";
+        document.getElementById('itemStatus').innerText = "Data siap diunduh.";
+        document.getElementById('pBar').style.backgroundColor = "#10B981"; // Green Success
         document.getElementById('dlBtn').style.display = 'block';
     }
 
     function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_HSCODE_SYNC_CLOUD.xlsx");
-        setTimeout(() => location.reload(), 1000);
+        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_CLOUD_SYNC.xlsx");
+        setTimeout(() => location.reload(), 1500);
     }
 </script>
 </body>
