@@ -3,55 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v9.1 - PosIND Batam</title>
+    <title>AI Automation HS Code v9.4 - PosIND Batam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --pos-cinnabar: #EF4123; 
-            --pos-delft-blue: #1C2D5A; 
-            --pos-bg: #F8FAFC;
-        }
-
+        :root { --pos-cinnabar: #EF4123; --pos-delft-blue: #1C2D5A; --pos-bg: #F8FAFC; }
         body { font-family: 'Gantari', sans-serif; background: var(--pos-bg); margin: 0; padding: 0; }
-
-        header {
-            background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 4px solid var(--pos-cinnabar); box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .logo-danantara { height: 40px; }
-        .logo-posind { height: 35px; }
-
+        header { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--pos-cinnabar); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo-danantara { height: 40px; } .logo-posind { height: 35px; }
         .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center; }
-
+        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center; margin-bottom: 30px; }
         h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 24px; margin-bottom: 8px; text-transform: uppercase; }
-        .sub-title { color: #64748B; margin-bottom: 25px; font-size: 13px; letter-spacing: 1px; }
+        .sub-title { color: #64748B; margin-bottom: 30px; font-size: 13px; letter-spacing: 1px; }
+        
+        /* Security Key Box */
+        .api-box { background: #FFF7ED; padding: 20px; border-radius: 12px; border-left: 5px solid #F97316; margin-bottom: 30px; text-align: left; }
+        .api-header { font-weight: 700; color: #C2410C; font-size: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .api-input-group { display: flex; gap: 10px; }
+        .api-input-group input { flex: 1; padding: 12px; border: 1px solid #FDBA74; border-radius: 8px; font-size: 14px; outline: none; }
+        .api-input-group button { background: #F97316; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .api-input-group button:hover { background: #EA580C; }
 
-        .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; text-align: left; }
-        .setup-box { background: #F8FAFC; padding: 20px; border-radius: 12px; border-left: 4px solid var(--pos-cinnabar); }
-        .setup-box.gh { border-left-color: #24292f; }
-        
-        label { display: block; font-weight: 600; font-size: 12px; color: var(--pos-delft-blue); margin-bottom: 8px; text-transform: uppercase; }
-        input { width: 100%; padding: 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; box-sizing: border-box; margin-bottom: 10px; }
-        .btn-save { background: var(--pos-delft-blue); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
-        .btn-save:hover { background: #152347; }
-        
         .upload-area { border: 2px dashed #CBD5E1; padding: 50px; border-radius: 20px; cursor: pointer; background: #FBFCFF; transition: 0.3s; }
-        .upload-area:hover { border-color: var(--pos-cinnabar); background: #FFF9F8; }
-
+        .upload-area:hover { border-color: #f97316; background: #fffedd; }
         #searchOverlay { display: none; margin: 30px 0; }
         .progress-container { width: 100%; background: #E2E8F0; border-radius: 10px; height: 12px; margin: 15px 0; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: 0.3s; }
+        .status-tag { display: inline-block; background: #ECFDF5; color: #065F46; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #10B981; margin-top: 20px; }
         
-        .memory-tag { display: inline-block; background: #ECFDF5; color: #065F46; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 20px; border: 1px solid #10B981; }
-        
-        #warningMessage { display: none; background: #FEF3C7; border-left: 5px solid #F59E0B; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; font-size: 13px; font-weight: 600; }
-
+        /* Dashboard Styling */
+        .admin-panel { background: white; border-radius: 20px; padding: 30px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .admin-panel h2 { font-size: 18px; color: var(--pos-delft-blue); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th { background: #F1F5F9; color: #475569; text-align: left; padding: 12px; border-bottom: 2px solid #E2E8F0; }
+        td { padding: 12px; border-bottom: 1px solid #F1F5F9; color: #1E293B; }
         .btn-download { display: none; background: var(--pos-delft-blue); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 20px; }
-        .btn-download:hover { background: #152347; box-shadow: 0 5px 15px rgba(28, 45, 90, 0.3); }
-        .footer-info { margin-top: 30px; font-size: 10px; color: #94A3B8; }
+        .empty-state { text-align: center; color: #94A3B8; padding: 40px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -64,224 +51,197 @@
 <div class="container">
     <div class="card">
         <h1>AI Automation HS Code</h1>
-        <div class="sub-title">MANAJER PENJUALAN KORPORAT - KCU BATAM</div>
+        <div class="sub-title">SISTEM KEPABEANAN PINTAR - KCU BATAM</div>
 
-        <div class="setup-grid">
-            <div class="setup-box">
-                <label style="color:#ea580c;">⚡ Mesin Groq API (Llama 3)</label>
-                <input type="password" id="groqKey" placeholder="gsk_...">
-                <button class="btn-save" onclick="saveSettings()">Simpan Konfigurasi</button>
+        <div class="api-box">
+            <div class="api-header">
+                <span id="keyStatusText">⚡ Otorisasi Mesin AI (Wajib Diisi)</span>
             </div>
-            <div class="setup-box gh">
-                <label>📂 GitHub Auto-Sync (Database)</label>
-                <input type="text" id="ghRepo" placeholder="newbieot/HSCODE">
-                <input type="password" id="ghToken" placeholder="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">
+            <div class="api-input-group">
+                <input type="password" id="groqInput" placeholder="Paste Kunci Groq Anda di sini (gsk_...)">
+                <button onclick="saveGroqKey()">Simpan Kunci</button>
             </div>
         </div>
 
-        <div id="memStatus" class="memory-tag">Memuat Database Cloud...</div>
-
         <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <p style="font-size: 16px; font-weight: 600;">📁 Unggah CIPL untuk Sinkronisasi</p>
-            <p style="font-size: 12px; color: #94A3B8;">Menggunakan Mode Hybrid (Offline DB + GitHub Cloud + AI Groq)</p>
+            <p style="font-size: 16px; font-weight: 600; color: #334155;">📁 Unggah Dokumen CIPL</p>
+            <p style="font-size: 12px; color: #94A3B8;">Otomatisasi 8-digit BTKI & Sinkronisasi Cloud</p>
             <input type="file" id="fileInput" accept=".xlsx" style="display:none">
         </div>
 
-        <div id="warningMessage"></div>
-
         <div id="searchOverlay">
-            <div id="progressCounter" style="font-weight: 700; color: var(--pos-delft-blue); font-size: 20px;">Memulai Proses...</div>
+            <div id="progressCounter" style="font-weight: 700; color: var(--pos-delft-blue);">Memproses...</div>
             <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-            <p id="itemStatus" style="font-size: 12px; color: #64748B;"></p>
+            <p id="itemStatus" style="font-size: 11px; color: #64748B;"></p>
         </div>
 
-        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL SINKRONISASI</button>
-        <div class="footer-info">v9.1 Hybrid Cloud Engine (Bug Fixed) • Kantor Pos Batam</div>
+        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL DOKUMEN</button>
+        <div id="statusTag" class="status-tag">Menghubungkan ke Database Pusat...</div>
+    </div>
+
+    <div class="admin-panel">
+        <h2>🧠 Daftar Pengetahuan Baru (Cloud Memory)</h2>
+        <div id="dbContainer">
+            <div class="empty-state">Belum ada barang baru yang dipelajari AI.</div>
+        </div>
     </div>
 </div>
 
 <script>
-    let settings = JSON.parse(localStorage.getItem('pos_batam_config')) || { groq: "", repo: "", token: "" };
+    // =========================================================================
+    // 📂 DAPUR DATABASE (TETAP TERSEMBUNYI DARI USER)
+    // Isi Token GitHub Bapak di bawah ini sebelum membagikan file HTML
+    // =========================================================================
+    const GITHUB_REPO = "newbieot/HSCODE";
+    const GITHUB_TOKEN = "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"; // <-- PASTE TOKEN GHP_... BAPAK DI SINI
+    // =========================================================================
+
+    // Manajemen Kunci Groq Dinamis
+    let GROQ_API_KEY = localStorage.getItem('pos_batam_groq_key') || "";
+    
+    function updateKeyUI() {
+        if (GROQ_API_KEY) {
+            const masked = GROQ_API_KEY.substring(0,6) + "..." + GROQ_API_KEY.substring(GROQ_API_KEY.length-4);
+            document.getElementById('keyStatusText').innerHTML = `✅ Mesin AI Aktif (${masked})`;
+            document.getElementById('keyStatusText').style.color = "#15803D";
+            document.getElementById('groqInput').value = GROQ_API_KEY;
+        }
+    }
+
+    function saveGroqKey() {
+        const inputKey = document.getElementById('groqInput').value.trim();
+        if(inputKey) {
+            localStorage.setItem('pos_batam_groq_key', inputKey);
+            GROQ_API_KEY = inputKey;
+            updateKeyUI();
+            alert("✅ Kunci Groq berhasil disimpan di browser Anda!");
+        } else {
+            alert("⚠️ Harap masukkan kunci yang valid!");
+        }
+    }
+
+    updateKeyUI(); // Panggil saat web pertama kali dibuka
+
     let cloudDB = {};
     let fileSha = "";
 
-    document.getElementById('groqKey').value = settings.groq;
-    document.getElementById('ghRepo').value = settings.repo;
-    document.getElementById('ghToken').value = settings.token;
-
-    // Database Offline Komplet yang kemarin tidak sengaja terhapus
     const OFFLINE_DB = {
-        'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'ROK': '6204.52.00', 'KEMEJA': '6205.20.00',
-        'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'RAKET': '9506.51.00',
-        'HANDUK': '6302.60.00', 'SPEAKER': '8518.22.00', 'SET TOP BOX': '8528.71.11', 'STB': '8528.71.11', 'KABEL': '8544.42.94',
-        'TOPI': '6505.00.90', 'JAM BEKER': '9105.11.00', 'JAM': '9105.11.00', 'BODY LOTION': '3304.99.30', 'LOTION': '3304.99.30', 
-        'MAINAN': '9503.00.99', 'BONEKA': '9503.00.10', 'TAS': '4202.22.00', 'MATRAS': '9506.91.00', 'AKSESORIS': '7117.90.00',
-        'MAGIG COM': '8516.60.10', 'MAGIC COM': '8516.60.10', 'RICE COOKER': '8516.60.10', 'LAPTOP': '8471.30.20', 'KOMPUTER': '8471.30.20',
-        'HANGER': '3924.90.90', 'ATK': '3926.10.00', 'ALAT TULIS': '3926.10.00', 'DOKUMEN': '4901.10.00', 'SEPATU': '6403.99.90', 
-        'SENDAL': '6402.99.90', 'SANDAL': '6402.99.90', 'BOTOL MINUM': '3924.10.00', 'BOTOL AIR': '3924.10.00', 'BOTOL': '3924.10.00', 
-        'MAKANAN': '2106.90.99', 'SAJADAH': '5705.00.00', 'TEMPAT SAMPAH': '3924.90.90', 'TRIPOD': '9006.91.00', 'KACAMATA': '9004.10.00', 
-        'IKAT PINGGANG': '4203.30.00', 'SABUK': '4203.30.00', 'PAYUNG': '6601.99.00', 'TIMBANGAN': '8423.10.10', 'SETRIKA': '8516.40.00',
-        'PALU': '8205.20.00', 'BUKU': '4901.99.00', 'RAK': '9403.20.90', 'BINGKAI': '4414.00.00', 'FRAME': '4414.00.00',
-        'PANCI': '7323.93.10', 'DIFFUSER': '8509.80.90', 'TREADMILL': '9506.91.00', 'PIALA': '8306.29.00', 'KULKAS': '8418.10.11',
-        'LEMARI ES': '8418.10.11', 'DISPENSER': '8516.10.11', 'KARPET': '5705.00.00', 'MENDALI': '7117.19.00', 'TUMBLER': '3924.10.00', 
-        'TEMPAT PISAU': '4419.90.00', 'TOPLES': '3924.90.90', 'BLENDER MINI': '8509.40.00', 'TIMBANGAN BADAN': '8423.10.10',
-        'PAMPERS': '9619.00.10', 'SARUNG BANTAL': '6302.21.00', 'MUKENA': '6211.11.90', 'BAJU RENANG': '6112.31.10', 'SETRIKA UAP': '8516.40.20'
+        'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'KEMEJA': '6205.20.00',
+        'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'TAS': '4202.22.10',
+        'BUKU': '4901.99.90', 'BANTAL': '9404.90.00', 'PAMPERS': '9619.00.10', 'TIMBANGAN': '8423.10.10',
+        'SAJADAH': '5705.00.00', 'MUKENA': '6211.11.90', 'TRIPOD': '9006.91.00', 'KULKAS': '8418.10.11'
     };
 
-    function saveSettings() {
-        settings.groq = document.getElementById('groqKey').value.trim();
-        settings.repo = document.getElementById('ghRepo').value.trim();
-        settings.token = document.getElementById('ghToken').value.trim();
-        localStorage.setItem('pos_batam_config', JSON.stringify(settings));
-        alert("✅ Konfigurasi berhasil disimpan. Web siap bekerja!");
-        loadCloudDatabase();
-    }
-
     async function loadCloudDatabase() {
-        if(!settings.repo || !settings.token) return;
+        if(!GITHUB_TOKEN) return;
         try {
-            const res = await fetch(`https://api.github.com/repos/${settings.repo}/contents/database.json`, {
-                headers: { 'Authorization': `token ${settings.token}` }
+            const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/database.json`, {
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
             });
             const data = await res.json();
             fileSha = data.sha;
             cloudDB = JSON.parse(atob(data.content));
-            document.getElementById('memStatus').innerText = `🧠 Memori Cloud Terhubung: ${Object.keys(cloudDB).length} Barang Dipelajari`;
+            renderDashboard();
+            document.getElementById('statusTag').innerText = `✅ Cloud Terhubung: ${Object.keys(cloudDB).length} Pengetahuan`;
         } catch(e) {
-            document.getElementById('memStatus').innerText = "⚠️ Database Cloud Belum Siap / Kosong";
+            document.getElementById('statusTag').innerText = "⚠️ Gagal Sinkronisasi Cloud";
+            document.getElementById('statusTag').style.background = "#FEF2F2";
+            document.getElementById('statusTag').style.color = "#EF4444";
         }
+    }
+
+    function renderDashboard() {
+        const container = document.getElementById('dbContainer');
+        const keys = Object.keys(cloudDB);
+        if(keys.length === 0) return;
+
+        let html = `<table><thead><tr><th>NAMA BARANG KANTOR POS</th><th>HS CODE (BTKI)</th></tr></thead><tbody>`;
+        keys.forEach(key => {
+            html += `<tr><td style="font-weight:600;">${key}</td><td style="color:#10B981; font-weight:700;">${cloudDB[key]}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
     }
 
     loadCloudDatabase();
 
     let finalWorkbook = null;
-
     document.getElementById('fileInput').onchange = function(e) {
         const file = e.target.files[0];
-        if(!file || !settings.groq) { alert("⚠️ Pastikan file Excel dipilih dan Kunci Groq sudah disimpan!"); return; }
-        
+        if(!file) return;
+
+        if(!GROQ_API_KEY) {
+            alert("⛔ Anda belum memasukkan Kunci Groq! Silakan Paste kunci di kolom atas dan klik Simpan.");
+            return;
+        }
+
         document.getElementById('dropZone').style.display = 'none';
         document.getElementById('searchOverlay').style.display = 'block';
-        document.getElementById('warningMessage').style.display = 'none';
-        
         const reader = new FileReader();
         reader.onload = async function(ev) {
             const wb = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
-            await processExcelHybrid(wb);
+            await processExcel(wb);
         };
         reader.readAsArrayBuffer(file);
     };
 
-    async function processExcelHybrid(wb) {
+    async function processExcel(wb) {
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
-
         let headerIdx = -1, colNama = -1, colHS = -1;
         for(let r=0; r<rows.length; r++){
-            if (!rows[r] || !Array.isArray(rows[r])) continue;
-            let rData = rows[r].map(v => String(v || "").toUpperCase().trim());
+            let rData = rows[r].map(v => String(v).toUpperCase());
             if(rData.includes("NAMA BARANG") || rData.includes("DESKRIPSI BARANG")){
-                headerIdx = r;
-                colNama = rData.findIndex(v => v.includes("NAMA BARANG") || v === "BARANG");
-                colHS = rData.findIndex(v => v.includes("HSCODE") || v.includes("HS CODE") || v === "HS");
-                break;
+                headerIdx = r; colNama = rData.findIndex(v => v.includes("BARANG")); colHS = rData.findIndex(v => v.includes("HS")); break;
             }
         }
 
-        if(headerIdx === -1) { alert("Header NAMA BARANG atau HSCODE tidak ditemukan!"); location.reload(); return; }
-
         let needsAI = [];
         let rowMap = {};
-        
-        // PENGGABUNGAN KEKUATAN: OFFLINE DB + CLOUD DB
         const COMBINED_DB = { ...OFFLINE_DB, ...cloudDB };
 
-        for(let r = headerIdx + 1; r < rows.length; r++){
+        for(let r=headerIdx+1; r<rows.length; r++){
             let nama = String(rows[r][colNama] || "").trim().toUpperCase();
-            if(!nama || nama === "NAN") continue;
-            
+            if(!nama) continue;
             let matched = false;
-            // Pencarian cerdas (mencakup kecocokan sebagian kata seperti "TRIPOD KAMERA" dll)
             for(let key in COMBINED_DB) {
-                if(nama.includes(key) || key.includes(nama)) { 
-                    while (rows[r].length <= colHS) rows[r].push("");
-                    rows[r][colHS] = COMBINED_DB[key]; 
-                    matched = true; 
-                    break; 
-                }
+                if(nama.includes(key)) { rows[r][colHS] = COMBINED_DB[key]; matched = true; break; }
             }
-
-            let currentHS = rows[r][colHS] ? String(rows[r][colHS]).trim() : "";
-            if(!matched && currentHS === "") {
+            if(!matched && !rows[r][colHS]) {
                 if(!rowMap[nama]) { needsAI.push(nama); rowMap[nama] = []; }
                 rowMap[nama].push(r);
             }
         }
 
-        const totalItems = needsAI.length;
-        document.getElementById('progressCounter').innerText = `Menemukan ${totalItems} Barang Baru`;
-
-        let hasNewCloudData = false;
-
-        if(totalItems > 0) {
-            // Groq Llama 3 sangat kuat, kita sikat 20 barang per batch
-            const batchSize = 20;
-            for(let i=0; i<totalItems; i+=batchSize){
-                const batch = needsAI.slice(i, i+batchSize);
-                const currentProgress = Math.min(i + batchSize, totalItems);
-                
-                document.getElementById('pBar').style.width = (currentProgress / totalItems * 100) + "%";
-                document.getElementById('progressCounter').innerText = `Menganalisis ${currentProgress} / ${totalItems}`;
-                document.getElementById('itemStatus').innerText = `Menghubungi AI Groq...`;
-                
-                const result = await callGroq(batch);
-                
-                if(result){
-                    for(let item in result) {
-                        const uppercaseItem = item.toUpperCase();
-                        
-                        // 1. Tulis ke Excel
-                        if(rowMap[uppercaseItem]) {
-                            rowMap[uppercaseItem].forEach(idx => {
-                                while (rows[idx].length <= colHS) rows[idx].push("");
-                                rows[idx][colHS] = result[item];
-                            });
-                        }
-
-                        // 2. Tandai untuk disimpan ke GitHub (Jika benar-benar baru)
-                        if (!COMBINED_DB[uppercaseItem] && !cloudDB[uppercaseItem]) {
-                            cloudDB[uppercaseItem] = result[item];
-                            hasNewCloudData = true;
-                        }
-                    }
-                } else {
-                    document.getElementById('warningMessage').innerText = "⚠️ Peringatan: Ada koneksi AI yang gagal. Beberapa baris mungkin kosong.";
-                    document.getElementById('warningMessage').style.display = 'block';
+        if(needsAI.length > 0) {
+            document.getElementById('progressCounter').innerText = "Menghubungi AI Groq...";
+            const result = await callGroq(needsAI);
+            if(result) {
+                Object.assign(cloudDB, result);
+                for(let item in result) {
+                    if(rowMap[item.toUpperCase()]) rowMap[item.toUpperCase()].forEach(idx => rows[idx][colHS] = result[item]);
                 }
-            }
-            
-            // Simpan yang baru dipelajari ke GitHub
-            if (hasNewCloudData) {
-                await updateGitHubDatabase();
+                await updateGitHub();
             }
         } else {
-            document.getElementById('pBar').style.width = "100%";
+             document.getElementById('pBar').style.width = "100%";
         }
-
+        
+        finalWorkbook = wb;
         const newSheet = XLSX.utils.aoa_to_sheet(rows);
         wb.Sheets[wb.SheetNames[0]] = newSheet;
-        finalWorkbook = wb;
-        finishUI();
+        document.getElementById('searchOverlay').style.display = 'none';
+        document.getElementById('dlBtn').style.display = 'block';
     }
 
     async function callGroq(items) {
         try {
             const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${settings.groq}`, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: "llama-3.3-70b-versatile",
-                    messages: [{ role: "system", content: "Sebagai ahli bea cukai. Tentukan HS Code 8-digit BTKI. Output WAJIB JSON murni {NAMA BARANG: XXXX.XX.XX}. HURUF KAPITAL." },
+                    messages: [{ role: "system", content: "Klasifikasi HS Code 8-digit. Output JSON MURNI {BARANG: HSCODE}. KANTOR PERWAKILAN BANK INDONESIA KEPULAUAN RIAU" },
                                { role: "user", content: JSON.stringify(items) }],
                     response_format: { type: "json_object" }
                 })
@@ -291,34 +251,24 @@
         } catch(e) { return null; }
     }
 
-    async function updateGitHubDatabase() {
-        if(!settings.repo || !settings.token) return;
-        document.getElementById('itemStatus').innerText = "💾 Mengunggah pengetahuan baru ke Cloud GitHub...";
+    async function updateGitHub() {
+        if(!GITHUB_TOKEN) return;
+        document.getElementById('itemStatus').innerText = "Menyimpan pengetahuan baru ke Cloud...";
         try {
-            await fetch(`https://api.github.com/repos/${settings.repo}/contents/database.json`, {
+            await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/database.json`, {
                 method: 'PUT',
-                headers: { 'Authorization': `token ${settings.token}`, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: "Auto-sync HS Code: Menambah kosa kata baru dari AI",
+                    message: "Sync: Belajar barang baru",
                     content: btoa(JSON.stringify(cloudDB, null, 2)),
                     sha: fileSha
                 })
             });
-            await loadCloudDatabase(); // Refresh SHA setelah berhasil
-        } catch(e) { console.error("Gagal simpan ke GitHub"); }
+            await loadCloudDatabase();
+        } catch(e) { console.error(e); }
     }
 
-    function finishUI() {
-        document.getElementById('progressCounter').innerText = "SINKRONISASI SELESAI!";
-        document.getElementById('itemStatus').innerText = "Data siap diunduh.";
-        document.getElementById('pBar').style.backgroundColor = "#10B981"; // Green Success
-        document.getElementById('dlBtn').style.display = 'block';
-    }
-
-    function downloadResult() {
-        XLSX.writeFile(finalWorkbook, "AUTO_CIPL_CLOUD_SYNC.xlsx");
-        setTimeout(() => location.reload(), 1500);
-    }
+    function downloadResult() { XLSX.writeFile(finalWorkbook, "HASIL_CIPL_SYNC.xlsx"); setTimeout(() => location.reload(), 1000); }
 </script>
 </body>
 </html>
