@@ -271,56 +271,57 @@
 
     function downloadResult() { XLSX.writeFile(finalWorkbook, "HASIL_CIPL_KCU_BATAM.xlsx"); setTimeout(() => location.reload(), 1000); }
 </script>
-<!-- Modern SaaS Footer (LIGHT MODE) -->
+<!-- Modern SaaS Footer (SLIM & DARK BACKGROUND) -->
 <style>
     .modern-footer {
-        margin-top: 5rem;
-        padding: 3rem 1rem 2rem 1rem;
-        border-top: 1px solid rgba(0, 0, 0, 0.08); /* Garis batas abu-abu lembut */
-        background: linear-gradient(to bottom, transparent, rgba(255, 87, 34, 0.03)); /* Gradasi putih ke sentuhan orange sangat tipis */
+        margin-top: 3rem; /* Memangkas jarak kosong di atas footer */
+        padding: 2rem 1rem 1.5rem 1rem; /* Memangkas ketebalan (padding) agar tidak 'gendut' */
+        background-color: #0f172a; /* Background gelap pekat */
+        border-top: 4px solid #FF5722; /* Garis aksen Postal Orange di bagian atas */
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1.2rem;
+        gap: 0.8rem; /* Merapatkan jarak antar teks */
         font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .footer-brand {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #0f172a; /* Teks gelap pekat */
+        color: #f8fafc; /* Teks putih terang */
         font-weight: 700;
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         letter-spacing: 0.5px;
     }
     .footer-desc {
-        color: #64748b; /* Teks deskripsi abu-abu elegan */
-        font-size: 0.9rem;
+        color: #94a3b8; /* Teks abu-abu terang */
+        font-size: 0.85rem;
         text-align: center;
-        max-width: 450px;
-        line-height: 1.6;
+        max-width: 500px;
+        line-height: 1.5;
+        margin: 0;
     }
     .footer-creator-badge {
         margin-top: 0.5rem;
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 87, 34, 0.08); /* Latar belakang lencana orange muda */
-        border: 1px solid rgba(255, 87, 34, 0.3);
-        padding: 8px 18px;
+        background: rgba(255, 87, 34, 0.1);
+        border: 1px solid rgba(255, 87, 34, 0.2);
+        padding: 6px 16px; /* Lencana dibuat lebih ramping */
         border-radius: 30px;
-        color: #475569; /* Warna teks nama */
-        font-size: 0.85rem;
+        color: #e2e8f0;
+        font-size: 0.8rem;
         transition: all 0.3s ease;
     }
     .footer-creator-badge:hover {
-        background: rgba(255, 87, 34, 0.15);
+        background: rgba(255, 87, 34, 0.2);
         border-color: rgba(255, 87, 34, 0.5);
-        box-shadow: 0 0 15px rgba(255, 87, 34, 0.1);
+        box-shadow: 0 0 10px rgba(255, 87, 34, 0.2);
         transform: translateY(-2px);
     }
     .footer-creator-badge strong {
-        color: #FF5722; /* Warna Postal Orange untuk nama Anda */
+        color: #FF5722;
         font-weight: 600;
         letter-spacing: 0.3px;
     }
@@ -328,19 +329,19 @@
 
 <footer class="modern-footer">
     <div class="footer-brand">
-        <i data-lucide="layers" style="color: #FF5722; width: 22px; height: 22px;"></i>
+        <i data-lucide="layers" style="color: #FF5722; width: 20px; height: 20px;"></i>
         PosNew Hub
     </div>
     <p class="footer-desc">
         Sistem utilitas ini dikembangkan secara independen untuk optimalisasi efisiensi layanan logistik B2B dan Ritel.
     </p>
     <div class="footer-creator-badge">
-        <i data-lucide="code-2" style="color: #FF5722; width: 16px; height: 16px;"></i>
+        <i data-lucide="code-2" style="color: #FF5722; width: 14px; height: 14px;"></i>
         Inovasi oleh <strong>Ikhsan Radiansyah</strong> &copy; 2026
     </div>
 </footer>
 
-<!-- Pastikan script ini ada di bawah footer agar ikon Lucide muncul -->
+<!-- Script Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     lucide.createIcons();
