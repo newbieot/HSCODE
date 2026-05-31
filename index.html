@@ -3,25 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code v12.0 - PosIND Batam by Ikhsan Radiansyah</title>
+    <title>AI Automation HS Code by Ikhsan Radiansyah | PosNew Hub</title>
     <link rel="icon" type="image/png" href="favicon-hscode.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Gantari:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Gantari:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --pos-cinnabar: #EF4123; --pos-delft-blue: #1C2D5A; --pos-bg: #F8FAFC; }
-        body { font-family: 'Gantari', sans-serif; background: var(--pos-bg); margin: 0; padding: 0; }
-        header { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--pos-cinnabar); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo-danantara { height: 40px; } .logo-posind { height: 35px; }
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center; margin-bottom: 30px; }
-        h1 { font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); font-size: 24px; margin-bottom: 8px; text-transform: uppercase; }
-        .sub-title { color: #64748B; margin-bottom: 30px; font-size: 13px; letter-spacing: 1px; }
+        :root { 
+            --pos-cinnabar: #EF4123; 
+            --pos-delft-blue: #1C2D5A; 
+            --pos-bg: #F8FAFC; 
+        }
+        
+        /* Pengaturan Body Flexbox agar footer selalu di bawah */
+        body { 
+            font-family: 'Gantari', sans-serif; 
+            background: var(--pos-bg); 
+            margin: 0; 
+            padding: 0; 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1; /* Mendorong footer ke bawah */
+        }
+
+        header { 
+            background: white; 
+            padding: 15px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 4px solid var(--pos-cinnabar); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+        }
+        .logo-danantara { height: 40px; } 
+        .logo-posind { height: 35px; }
+        
+        .container { 
+            max-width: 900px; 
+            margin: 40px auto; 
+            padding: 0 20px; 
+        }
+        
+        .card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 24px; 
+            box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        
+        h1 { 
+            font-family: 'Sora', sans-serif; 
+            color: var(--pos-delft-blue); 
+            font-size: 24px; 
+            margin-bottom: 8px; 
+            text-transform: uppercase; 
+            font-weight: 800;
+        }
+        .sub-title { color: #64748B; margin-bottom: 30px; font-size: 13px; letter-spacing: 1px; font-weight: 500; }
         
         .api-box { background: #FFF7ED; padding: 20px; border-radius: 12px; border-left: 5px solid #F97316; margin-bottom: 30px; text-align: left; }
         .api-header { font-weight: 700; color: #C2410C; font-size: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; }
         .api-input-group { display: flex; gap: 10px; }
-        .api-input-group input { flex: 1; padding: 12px; border: 1px solid #FDBA74; border-radius: 8px; font-size: 14px; outline: none; }
-        .api-input-group button { background: #F97316; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .api-input-group input { flex: 1; padding: 12px; border: 1px solid #FDBA74; border-radius: 8px; font-size: 14px; outline: none; font-family: 'Gantari', sans-serif; }
+        .api-input-group button { background: #F97316; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer; transition: 0.3s; }
         .api-input-group button:hover { background: #EA580C; }
 
         .upload-area { border: 2px dashed #CBD5E1; padding: 50px; border-radius: 20px; cursor: pointer; background: #FBFCFF; transition: 0.3s; }
@@ -31,65 +80,131 @@
         .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: 0.3s; }
         .status-tag { display: inline-block; background: #ECFDF5; color: #065F46; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #10B981; margin-top: 20px; }
         
-        .admin-panel { background: white; border-radius: 20px; padding: 30px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .admin-panel h2 { font-size: 18px; color: var(--pos-delft-blue); margin-bottom: 20px; }
+        /* UI Database disembunyikan, tapi strukturnya tetap dipertahankan agar JS tidak error */
+        .admin-panel { 
+            display: none; /* UI Disembunyikan Sesuai Permintaan */
+            background: white; border-radius: 20px; padding: 30px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+        }
+        .admin-panel h2 { font-size: 18px; color: var(--pos-delft-blue); margin-bottom: 20px; font-family: 'Sora', sans-serif; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th { background: #F1F5F9; color: #475569; text-align: left; padding: 12px; border-bottom: 2px solid #E2E8F0; }
+        th { background: #F1F5F9; color: #475569; text-align: left; padding: 12px; border-bottom: 2px solid #E2E8F0; font-family: 'Sora', sans-serif; }
         td { padding: 12px; border-bottom: 1px solid #F1F5F9; color: #1E293B; font-weight: 600;}
         .td-hs { color: #10B981; font-weight: 700; }
-        .btn-download { display: none; background: var(--pos-delft-blue); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 20px; }
+        .btn-download { display: none; background: var(--pos-delft-blue); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; font-family: 'Sora', sans-serif; width: 100%; cursor: pointer; margin-top: 20px; transition: 0.3s;}
+        .btn-download:hover { background: #142142; transform: translateY(-2px); }
+
+        /* DASHBOARD FOOTER (UNIVERSAL & MUTLAK 1 BARIS) */
+        .dashboard-footer {
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #0f172a;
+            border-top: 3px solid var(--pos-cinnabar);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            margin-top: auto;
+            font-family: 'Gantari', 'Segoe UI', sans-serif;
+            z-index: 20;
+            height: 60px; /* Mengunci tinggi agar mutlak 1 baris */
+            overflow: hidden;
+        }
+        .footer-brand {
+            display: flex; align-items: center; gap: 8px;
+            color: #f8fafc; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px;
+            white-space: nowrap; font-family: 'Sora', sans-serif;
+        }
+        .footer-desc { 
+            color: #94a3b8; font-size: 0.8rem; margin: 0 15px; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            text-align: center; flex: 1;
+        }
+        .footer-creator-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(239, 65, 35, 0.1); border: 1px solid rgba(239, 65, 35, 0.2);
+            padding: 5px 14px; border-radius: 20px; color: #e2e8f0; font-size: 0.75rem;
+            white-space: nowrap; transition: all 0.3s ease;
+        }
+        .footer-creator-badge:hover { 
+            background: rgba(239, 65, 35, 0.2); border-color: rgba(239, 65, 35, 0.5); 
+        }
+        .footer-creator-badge strong { color: var(--pos-cinnabar); font-weight: 600; }
+
+        @media (max-width: 850px) {
+            .dashboard-footer { 
+                flex-direction: column; justify-content: center; gap: 8px; 
+                padding: 15px; height: auto; 
+            }
+            .footer-desc { display: none; }
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Danantara_Indonesia_%28no_SW%29.svg/960px-Danantara_Indonesia_%28no_SW%29.svg.png" class="logo-danantara">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/POSIND_2023_%28with_wordmark%29.svg/1280px-POSIND_2023_%28with_wordmark%29.svg.png" class="logo-posind">
-</header>
+<!-- Pembungkus Konten untuk Layout Flexbox -->
+<div class="main-content">
+    <header>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Danantara_Indonesia_%28no_SW%29.svg/960px-Danantara_Indonesia_%28no_SW%29.svg.png" class="logo-danantara">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/POSIND_2023_%28with_wordmark%29.svg/1280px-POSIND_2023_%28with_wordmark%29.svg.png" class="logo-posind">
+    </header>
 
-<div class="container">
-    <div class="card">
-        <h1>AI Automation HS Code</h1>
-        <div class="sub-title">SISTEM KEPABEANAN PINTAR (GOOGLE SHEETS ENGINE) - KCU BATAM</div>
+    <div class="container">
+        <div class="card">
+            <h1>AI Automation HS Code</h1>
+            <div class="sub-title">SISTEM KEPABEANAN PINTAR (GOOGLE SHEETS ENGINE) - KCU BATAM</div>
 
-        <div class="api-box">
-            <div class="api-header">
-                <span id="keyStatusText">⚡ Otorisasi Mesin AI (Wajib Diisi oleh Pengguna)</span>
+            <div class="api-box">
+                <div class="api-header">
+                    <span id="keyStatusText">⚡ Otorisasi Mesin AI (Wajib Diisi oleh Pengguna)</span>
+                </div>
+                <div class="api-input-group">
+                    <input type="password" id="groqInput" placeholder="Paste Kunci Groq Anda di sini (gsk_...)">
+                    <button onclick="saveGroqKey()">Simpan Kunci</button>
+                </div>
             </div>
-            <div class="api-input-group">
-                <input type="password" id="groqInput" placeholder="Paste Kunci Groq Anda di sini (gsk_...)">
-                <button onclick="saveGroqKey()">Simpan Kunci</button>
+
+            <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <p style="font-size: 16px; font-weight: 600; color: #334155;">📁 Unggah Dokumen CIPL</p>
+                <p style="font-size: 12px; color: #94A3B8;">Otomatis tersimpan ke Google Sheets KCU Batam</p>
+                <input type="file" id="fileInput" accept=".xlsx" style="display:none">
             </div>
+
+            <div id="searchOverlay">
+                <div id="progressCounter" style="font-weight: 700; color: var(--pos-delft-blue);">Memproses...</div>
+                <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
+                <p id="itemStatus" style="font-size: 11px; color: #64748B;"></p>
+            </div>
+
+            <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL DOKUMEN</button>
+            <div id="statusTag" class="status-tag">Menghubungkan ke Google Sheets...</div>
         </div>
 
-        <div id="dropZone" class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <p style="font-size: 16px; font-weight: 600; color: #334155;">📁 Unggah Dokumen CIPL</p>
-            <p style="font-size: 12px; color: #94A3B8;">Otomatis tersimpan ke Google Sheets KCU Batam</p>
-            <input type="file" id="fileInput" accept=".xlsx" style="display:none">
-        </div>
-
-        <div id="searchOverlay">
-            <div id="progressCounter" style="font-weight: 700; color: var(--pos-delft-blue);">Memproses...</div>
-            <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-            <p id="itemStatus" style="font-size: 11px; color: #64748B;"></p>
-        </div>
-
-        <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL DOKUMEN</button>
-        <div id="statusTag" class="status-tag">Menghubungkan ke Google Sheets...</div>
-    </div>
-
-    <div class="admin-panel">
-        <h2>🧠 Database Pengetahuan (Google Sheets Cloud)</h2>
-        <div id="dbContainer">
-            <div style="text-align: center; color: #94A3B8; padding: 20px;">Memuat data dari Google Sheets...</div>
+        <!-- UI Database Disembunyikan (display: none via CSS), namun elemennya tetap di sini agar JS berfungsi normal -->
+        <div class="admin-panel">
+            <h2>🧠 Database Pengetahuan (Google Sheets Cloud)</h2>
+            <div id="dbContainer">
+                <div style="text-align: center; color: #94A3B8; padding: 20px;">Memuat data dari Google Sheets...</div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- FOOTER DASHBOARD MINIMALIS -->
+<footer class="dashboard-footer">
+    <div class="footer-brand">
+        <i data-lucide="layers" style="color: #EF4123; width: 18px; height: 18px;"></i>
+        PosNew Hub
+    </div>
+    <p class="footer-desc">Sistem utilitas ini dikembangkan secara independen untuk optimalisasi efisiensi layanan logistik B2B dan Ritel.</p>
+    <div class="footer-creator-badge">
+        <i data-lucide="code-2" style="color: #EF4123; width: 14px; height: 14px;"></i>
+        Inovasi oleh <strong>Ikhsan Radiansyah</strong> &copy; 2026
+    </div>
+</footer>
+
 <script>
     // =========================================================================
     // 📂 DAPUR DATABASE GOOGLE SHEETS
-    // Paste URL dari Langkah 10 di sini (harus tetap di dalam tanda kutip)
     // =========================================================================
     const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysYOk1lUTLpMFViAJPXh_hAtmEuX5UmfwQzz1OHqvbfQD-lfDH-vEGhuMeQ5oXv2Gz4Q/exec";
     // =========================================================================
@@ -134,7 +249,7 @@
         try {
             const res = await fetch(GOOGLE_APPS_SCRIPT_URL);
             cloudDB = await res.json();
-            renderDashboard();
+            renderDashboard(); // Render berjalan dibelakang layar walau UI tersembunyi
             document.getElementById('statusTag').innerText = `✅ Google Sheets Terhubung (${Object.keys(cloudDB).length} Barang Tersimpan)`;
         } catch(e) {
             document.getElementById('statusTag').innerText = "⚠️ Gagal Hubungi Google Sheets";
@@ -263,88 +378,22 @@
         try {
             await fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify(newData) // Format string polos tanpa header ribet, ini menghindari blokir keamanan CORS browser
+                body: JSON.stringify(newData) 
             });
-            await loadCloudDatabase(); // Refresh data dari sheet
+            await loadCloudDatabase(); 
         } catch(e) { console.error("Gagal simpan ke Sheets:", e); }
     }
 
     function downloadResult() { XLSX.writeFile(finalWorkbook, "HASIL_CIPL_KCU_BATAM.xlsx"); setTimeout(() => location.reload(), 1000); }
 </script>
-<!-- Modern SaaS Footer (SLIM & DARK BACKGROUND) -->
-<style>
-    .modern-footer {
-        margin-top: 3rem; /* Memangkas jarak kosong di atas footer */
-        padding: 2rem 1rem 1.5rem 1rem; /* Memangkas ketebalan (padding) agar tidak 'gendut' */
-        background-color: #0f172a; /* Background gelap pekat */
-        border-top: 4px solid #FF5722; /* Garis aksen Postal Orange di bagian atas */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.8rem; /* Merapatkan jarak antar teks */
-        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .footer-brand {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #f8fafc; /* Teks putih terang */
-        font-weight: 700;
-        font-size: 1.1rem;
-        letter-spacing: 0.5px;
-    }
-    .footer-desc {
-        color: #94a3b8; /* Teks abu-abu terang */
-        font-size: 0.85rem;
-        text-align: center;
-        max-width: 500px;
-        line-height: 1.5;
-        margin: 0;
-    }
-    .footer-creator-badge {
-        margin-top: 0.5rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 87, 34, 0.1);
-        border: 1px solid rgba(255, 87, 34, 0.2);
-        padding: 6px 16px; /* Lencana dibuat lebih ramping */
-        border-radius: 30px;
-        color: #e2e8f0;
-        font-size: 0.8rem;
-        transition: all 0.3s ease;
-    }
-    .footer-creator-badge:hover {
-        background: rgba(255, 87, 34, 0.2);
-        border-color: rgba(255, 87, 34, 0.5);
-        box-shadow: 0 0 10px rgba(255, 87, 34, 0.2);
-        transform: translateY(-2px);
-    }
-    .footer-creator-badge strong {
-        color: #FF5722;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-    }
-</style>
-
-<footer class="modern-footer">
-    <div class="footer-brand">
-        <i data-lucide="layers" style="color: #FF5722; width: 20px; height: 20px;"></i>
-        PosNew Hub
-    </div>
-    <p class="footer-desc">
-        Sistem utilitas ini dikembangkan secara independen untuk optimalisasi efisiensi layanan logistik B2B dan Ritel.
-    </p>
-    <div class="footer-creator-badge">
-        <i data-lucide="code-2" style="color: #FF5722; width: 14px; height: 14px;"></i>
-        Inovasi oleh <strong>Ikhsan Radiansyah</strong> &copy; 2026
-    </div>
-</footer>
 
 <!-- Script Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 </script>
+
 </body>
 </html>
