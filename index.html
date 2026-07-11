@@ -309,8 +309,10 @@
         
         for(let r=0; r<rows.length; r++){
             let rData = rows[r].map(v => String(v).toUpperCase());
-            if(rData.includes("NAMA BARANG") || rData.includes("DESKRIPSI BARANG")){
-                headerIdx = r; colNama = rData.findIndex(v => v.includes("BARANG")); colHS = rData.findIndex(v => v.includes("HS")); break;
+            let tempColNama = rData.findIndex(v => v.includes("BARANG"));
+            let tempColHS = rData.findIndex(v => v.includes("HS"));
+            if(tempColNama !== -1 && tempColHS !== -1){
+                headerIdx = r; colNama = tempColNama; colHS = tempColHS; break;
             }
         }
 
