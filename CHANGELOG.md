@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1 — 27 Juli 2026
+
+- Menyesuaikan footer agar konsisten dengan desain `lacak.posnew.com`.
+- Menggunakan footer dashboard gelap setinggi 38px dengan garis aksen oranye.
+- Menambahkan badge kreator, responsivitas mobile, dan perilaku footer tetap berada di bawah halaman pendek.
+
 ## 2.0.0 — 2026-07-27
 
 ### Added
