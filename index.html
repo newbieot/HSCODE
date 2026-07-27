@@ -1,410 +1,431 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Automation HS Code by Ikhsan Radiansyah | PosNew Hub</title>
-    <link rel="icon" type="image/png" href="favicon-hscode.png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Gantari:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --pos-cinnabar: #EF4123; 
-            --pos-delft-blue: #1C2D5A; 
-            --pos-bg: #F8FAFC; 
-        }
-        
-        body { 
-            font-family: 'Gantari', sans-serif; 
-            background: var(--pos-bg); 
-            margin: 0; 
-            padding: 0; 
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .main-content { flex: 1; }
-
-        header { 
-            background: white; padding: 15px 40px; display: flex; 
-            justify-content: space-between; align-items: center; 
-            border-bottom: 4px solid var(--pos-cinnabar); 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-        }
-        .logo-danantara { height: 40px; } 
-        .logo-posind { height: 35px; }
-        
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        
-        .card { 
-            background: white; padding: 40px; border-radius: 24px; 
-            box-shadow: 0 15px 50px rgba(28, 45, 90, 0.1); text-align: center; margin-bottom: 30px; 
-        }
-        
-        h1 { 
-            font-family: 'Sora', sans-serif; color: var(--pos-delft-blue); 
-            font-size: 24px; margin-bottom: 8px; text-transform: uppercase; font-weight: 800;
-        }
-        .sub-title { color: #64748B; margin-bottom: 30px; font-size: 13px; letter-spacing: 1px; font-weight: 500; }
-        
-        .api-box { background: #FFF7ED; padding: 20px; border-radius: 12px; border-left: 5px solid #F97316; margin-bottom: 30px; text-align: left; }
-        .api-header { font-weight: 700; color: #C2410C; font-size: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .api-input-group { display: flex; gap: 10px; }
-        .api-input-group input { flex: 1; padding: 12px; border: 1px solid #FDBA74; border-radius: 8px; font-size: 14px; outline: none; font-family: 'Gantari', sans-serif; }
-        .api-input-group button { background: #F97316; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer; transition: 0.3s; }
-        .api-input-group button:hover { background: #EA580C; }
-
-        /* Area Upload & Drag-Drop */
-        .upload-area { 
-            border: 2px dashed #CBD5E1; padding: 50px; border-radius: 20px; 
-            cursor: pointer; background: #FBFCFF; transition: all 0.3s ease; 
-        }
-        .upload-area:hover { border-color: #f97316; background: #fffedd; }
-        .upload-area.dragover { border-color: #EF4123; background: #FFF1F0; transform: scale(1.02); } /* Efek saat di-drag */
-        
-        #searchOverlay { display: none; margin: 30px 0; }
-        .progress-container { width: 100%; background: #E2E8F0; border-radius: 10px; height: 12px; margin: 15px 0; overflow: hidden; }
-        .progress-bar { width: 0%; height: 100%; background: var(--pos-cinnabar); transition: 0.3s; }
-        .status-tag { display: inline-block; background: #ECFDF5; color: #065F46; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #10B981; margin-top: 20px; }
-        
-        .admin-panel { display: none; background: white; border-radius: 20px; padding: 30px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .admin-panel h2 { font-size: 18px; color: var(--pos-delft-blue); margin-bottom: 20px; font-family: 'Sora', sans-serif; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th { background: #F1F5F9; color: #475569; text-align: left; padding: 12px; border-bottom: 2px solid #E2E8F0; font-family: 'Sora', sans-serif; }
-        td { padding: 12px; border-bottom: 1px solid #F1F5F9; color: #1E293B; font-weight: 600;}
-        .td-hs { color: #10B981; font-weight: 700; }
-        .btn-download { display: none; background: var(--pos-delft-blue); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; font-family: 'Sora', sans-serif; width: 100%; cursor: pointer; margin-top: 20px; transition: 0.3s;}
-        .btn-download:hover { background: #142142; transform: translateY(-2px); }
-
-        .dashboard-footer {
-            width: 100%; box-sizing: border-box; background-color: #0f172a; border-top: 3px solid var(--pos-cinnabar);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 24px; margin-top: auto;
-            font-family: 'Gantari', 'Segoe UI', sans-serif; z-index: 20; height: 60px; overflow: hidden;
-        }
-        .footer-brand { display: flex; align-items: center; gap: 8px; color: #f8fafc; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px; white-space: nowrap; font-family: 'Sora', sans-serif; }
-        .footer-desc { color: #94a3b8; font-size: 0.8rem; margin: 0 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; flex: 1; }
-        .footer-creator-badge {
-            display: inline-flex; align-items: center; gap: 6px; background: rgba(239, 65, 35, 0.1); border: 1px solid rgba(239, 65, 35, 0.2);
-            padding: 5px 14px; border-radius: 20px; color: #e2e8f0; font-size: 0.75rem; white-space: nowrap; transition: all 0.3s ease;
-        }
-        .footer-creator-badge:hover { background: rgba(239, 65, 35, 0.2); border-color: rgba(239, 65, 35, 0.5); }
-        .footer-creator-badge strong { color: var(--pos-cinnabar); font-weight: 600; }
-
-        @media (max-width: 850px) {
-            .dashboard-footer { flex-direction: column; justify-content: center; gap: 8px; padding: 15px; height: auto; }
-            .footer-desc { display: none; }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>HS Code Finder Indonesia – AI Product Classification</title>
+  <meta name="description" content="Cari dan analisis kandidat HS Code berdasarkan deskripsi barang menggunakan AI untuk membantu proses klasifikasi perdagangan dan logistik.">
+  <meta name="theme-color" content="#172554">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://hs.posnew.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hs.posnew.com/">
+  <meta property="og:title" content="HS Code Finder Indonesia – AI Product Classification">
+  <meta property="og:description" content="Analisis kandidat HS Code dari deskripsi barang, lengkap dengan alasan, alternatif, dan langkah verifikasi.">
+  <meta property="og:image" content="https://hs.posnew.com/favicon-hscode.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="HS Code Finder Indonesia">
+  <meta name="twitter:description" content="AI-assisted product classification for logistics and trade.">
+  <link rel="icon" type="image/png" href="/favicon-hscode.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "HS Code Finder Indonesia",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "url": "https://hs.posnew.com/",
+    "description": "Alat bantu analisis kandidat HS Code berbasis AI untuk klasifikasi perdagangan dan logistik.",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "IDR"},
+    "publisher": {"@type": "Organization", "name": "PosNew Hub", "url": "https://posnew.com"}
+  }
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#mainContent">Lewati ke konten utama</a>
 
-<div class="main-content">
-    <header>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Danantara_Indonesia_%28no_SW%29.svg/960px-Danantara_Indonesia_%28no_SW%29.svg.png" class="logo-danantara">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/POSIND_2023_%28with_wordmark%29.svg/1280px-POSIND_2023_%28with_wordmark%29.svg.png" class="logo-posind">
-    </header>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="HS Code Finder beranda">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 36 36" role="img"><path d="M7 10.5 18 4l11 6.5v15L18 32 7 25.5v-15Z" fill="currentColor" opacity=".14"/><path d="m10 12 8-4.7 8 4.7-8 4.7-8-4.7Zm0 4 6.5 3.8v7.6L10 23.6V16Zm9.5 11.4v-7.6L26 16v7.6l-6.5 3.8Z" fill="currentColor"/></svg>
+        </span>
+        <span>
+          <strong>HS Code Finder</strong>
+          <small>PosNew Hub</small>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="status-chip" id="apiStatusButton" type="button" aria-haspopup="dialog" aria-controls="apiModal">
+          <span class="status-dot" id="apiStatusDot" aria-hidden="true"></span>
+          <span id="apiStatusLabel">Memeriksa koneksi AI</span>
+        </button>
+        <button class="icon-button" id="helpButton" type="button" aria-label="Buka panduan penggunaan" title="Panduan penggunaan">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.7 1.8c-1 .7-1.5 1.2-1.5 2.2M12 17h.01"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
 
-    <div class="container">
-        <div class="card">
-            <h1>AI Automation HS Code</h1>
-            <div class="sub-title">SISTEM KEPABEANAN PINTAR (GOOGLE SHEETS ENGINE) - KCU BATAM</div>
+  <main id="mainContent">
+    <section class="hero shell" aria-labelledby="pageTitle">
+      <div class="hero-copy">
+        <span class="eyebrow">AI-assisted trade classification</span>
+        <h1 id="pageTitle">Temukan kandidat HS Code dengan alur yang lebih jelas.</h1>
+        <p>Jelaskan barang, bahan, fungsi, dan cara kerjanya. Sistem akan menyusun rekomendasi awal, alternatif kode, informasi yang masih kurang, serta langkah verifikasi.</p>
+        <div class="hero-points" aria-label="Keunggulan utama">
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Pencarian cepat & analisis rinci</span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Tetap mendukung file CIPL Excel</span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Data lokal dapat dihapus kapan saja</span>
+        </div>
+      </div>
+      <aside class="hero-summary" aria-label="Alur penggunaan">
+        <div class="step"><span>1</span><div><strong>Deskripsikan produk</strong><small>Nama, bahan, fungsi, spesifikasi.</small></div></div>
+        <div class="step"><span>2</span><div><strong>Analisis dengan AI</strong><small>Groq memproses informasi yang Anda kirim.</small></div></div>
+        <div class="step"><span>3</span><div><strong>Tinjau kandidat kode</strong><small>Periksa alasan, alternatif, dan confidence.</small></div></div>
+        <div class="step"><span>4</span><div><strong>Verifikasi sumber resmi</strong><small>Konfirmasi melalui BTKI, INSW, atau pihak berwenang.</small></div></div>
+      </aside>
+    </section>
 
-            <div class="api-box">
-                <div class="api-header">
-                    <span id="keyStatusText">⚡ Otorisasi Mesin AI (Wajib Diisi oleh Pengguna)</span>
-                </div>
-                <div class="api-input-group">
-                    <input type="password" id="groqInput" placeholder="Paste Kunci Groq Anda di sini (gsk_...)">
-                    <button onclick="saveGroqKey()">Simpan Kunci</button>
-                </div>
-            </div>
-
-            <!-- AREA DRAG AND DROP DITAMBAHKAN -->
-            <div id="dropZone" class="upload-area">
-                <p style="font-size: 16px; font-weight: 600; color: #334155;">📁 Unggah Dokumen CIPL</p>
-                <p style="font-size: 12px; color: #94A3B8;">Tarik & Lepas File Excel ke Sini atau Klik untuk Mengunggah</p>
-                <input type="file" id="fileInput" accept=".xlsx" style="display:none">
-            </div>
-
-            <div id="selectedFileArea" style="display: none; background: #F8FAFC; padding: 20px; border-radius: 16px; margin-bottom: 30px; border: 2px dashed #CBD5E1; text-align: left;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #E2E8F0;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 24px;">📄</span>
-                        <div>
-                            <div id="fileNameDisplay" style="font-weight: 700; color: var(--pos-delft-blue); font-size: 14px;">namafile.xlsx</div>
-                            <div style="font-size: 12px; color: #64748B;">Siap diproses</div>
-                        </div>
-                    </div>
-                    <button onclick="removeSelectedFile()" style="background: #FEE2E2; color: #EF4444; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 12px; transition: 0.2s;">Hapus ✖</button>
-                </div>
-                <button id="submitBtn" onclick="submitFile()" style="background: var(--pos-cinnabar); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-family: 'Sora', sans-serif; width: 100%; cursor: pointer; transition: 0.3s; font-size: 14px;">Mulai Pemrosesan AI 🚀</button>
-            </div>
-
-            <div id="searchOverlay">
-                <div id="progressCounter" style="font-weight: 700; color: var(--pos-delft-blue);">Memproses...</div>
-                <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-                <p id="itemStatus" style="font-size: 11px; color: #64748B;"></p>
-            </div>
-
-            <button id="dlBtn" class="btn-download" onclick="downloadResult()">⬇️ DOWNLOAD HASIL DOKUMEN</button>
-            <div id="statusTag" class="status-tag">Menghubungkan ke Google Sheets...</div>
+    <section class="workspace shell" aria-label="Pencarian HS Code">
+      <div class="panel search-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="section-kicker">Mulai analisis</span>
+            <h2>Informasi barang</h2>
+          </div>
+          <button class="text-button" id="fillExampleButton" type="button">Isi contoh</button>
         </div>
 
-        <div class="admin-panel">
-            <h2>🧠 Database Pengetahuan (Google Sheets Cloud)</h2>
-            <div id="dbContainer">
-                <div style="text-align: center; color: #94A3B8; padding: 20px;">Memuat data dari Google Sheets...</div>
-            </div>
+        <div class="mode-tabs" role="tablist" aria-label="Mode pencarian">
+          <button id="quickTab" class="mode-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="quickPanel" data-mode="quick">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z"/></svg>
+            Quick Search
+          </button>
+          <button id="detailTab" class="mode-tab" type="button" role="tab" aria-selected="false" aria-controls="detailPanel" data-mode="detail">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>
+            Detailed Analysis
+          </button>
+          <button id="bulkTab" class="mode-tab" type="button" role="tab" aria-selected="false" aria-controls="bulkPanel" data-mode="bulk">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>
+            Excel CIPL
+          </button>
         </div>
+
+        <form id="analysisForm" novalidate>
+          <div id="quickPanel" class="tab-panel" role="tabpanel" aria-labelledby="quickTab">
+            <label class="field-label" for="quickDescription">Deskripsi barang <span aria-hidden="true">*</span></label>
+            <textarea id="quickDescription" name="description" rows="7" maxlength="2000" placeholder="Contoh: Mesin pemotong rumput bertenaga baterai, menggunakan motor listrik, dijual lengkap dengan baterai dan charger." aria-describedby="quickHelp quickCounter"></textarea>
+            <div class="field-meta">
+              <span id="quickHelp">Sertakan bahan, fungsi, cara kerja, bentuk, atau spesifikasi yang membedakan.</span>
+              <span id="quickCounter">0/2000</span>
+            </div>
+            <div class="quality-hint" id="qualityHint" aria-live="polite">
+              <span class="quality-icon" aria-hidden="true">i</span>
+              <span>Deskripsi yang rinci membantu AI membedakan heading dan subheading yang mirip.</span>
+            </div>
+          </div>
+
+          <div id="detailPanel" class="tab-panel" role="tabpanel" aria-labelledby="detailTab" hidden>
+            <div class="form-grid">
+              <div class="field-group span-2">
+                <label class="field-label" for="productName">Nama barang <span aria-hidden="true">*</span></label>
+                <input id="productName" name="productName" maxlength="160" placeholder="Contoh: Filter udara mesin kendaraan bermotor">
+              </div>
+              <div class="field-group span-2">
+                <label class="field-label" for="productDescription">Deskripsi barang</label>
+                <textarea id="productDescription" name="productDescription" rows="4" maxlength="1600" placeholder="Jelaskan bentuk, spesifikasi, dan apa yang membedakannya dari barang lain."></textarea>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="material">Bahan utama</label>
+                <input id="material" name="material" maxlength="180" placeholder="Kertas dan plastik">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="mainFunction">Fungsi utama</label>
+                <input id="mainFunction" name="mainFunction" maxlength="220" placeholder="Menyaring udara masuk ke mesin">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="workingMethod">Cara kerja</label>
+                <input id="workingMethod" name="workingMethod" maxlength="220" placeholder="Udara melewati media filter">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="usage">Penggunaan</label>
+                <input id="usage" name="usage" maxlength="220" placeholder="Untuk mesin bensin kendaraan bermotor">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="condition">Kondisi barang</label>
+                <select id="condition" name="condition">
+                  <option value="">Tidak disebutkan</option>
+                  <option>Baru</option>
+                  <option>Bekas</option>
+                  <option>Setengah jadi</option>
+                  <option>Komponen/bagian</option>
+                  <option>Barang lengkap</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="packaging">Bentuk atau kemasan</label>
+                <input id="packaging" name="packaging" maxlength="180" placeholder="Unit, set, roll, cairan, serbuk">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="composition">Komposisi/kandungan</label>
+                <input id="composition" name="composition" maxlength="220" placeholder="Persentase bahan bila tersedia">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="originCountry">Negara asal</label>
+                <input id="originCountry" name="originCountry" maxlength="100" placeholder="Opsional">
+              </div>
+              <div class="field-group span-2">
+                <label class="field-label" for="additionalNotes">Catatan tambahan</label>
+                <textarea id="additionalNotes" name="additionalNotes" rows="3" maxlength="1000" placeholder="Model, daya, kapasitas, ukuran, atau informasi teknis lainnya."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div id="bulkPanel" class="tab-panel" role="tabpanel" aria-labelledby="bulkTab" hidden>
+            <div class="bulk-intro">
+              <div>
+                <h3>Proses dokumen CIPL secara massal</h3>
+                <p>Sistem mendeteksi kolom nama barang dan HS Code, memakai database lokal/Google Sheets terlebih dahulu, lalu meminta AI hanya untuk item yang belum ditemukan.</p>
+              </div>
+              <span class="file-format">.XLSX / .XLS</span>
+            </div>
+            <button id="dropZone" class="drop-zone" type="button" aria-describedby="uploadHelp">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>
+              <strong id="dropZoneTitle">Pilih atau tarik file Excel ke sini</strong>
+              <span id="uploadHelp">Maksimum 10 MB. File diproses langsung di browser Anda.</span>
+            </button>
+            <input id="fileInput" type="file" accept=".xlsx,.xls" hidden>
+            <div id="selectedFileCard" class="selected-file" hidden>
+              <div class="file-icon" aria-hidden="true">XLS</div>
+              <div class="file-info">
+                <strong id="fileNameDisplay"></strong>
+                <small id="fileSizeDisplay"></small>
+              </div>
+              <button id="removeFileButton" class="icon-button danger" type="button" aria-label="Hapus file terpilih">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="formError" class="inline-alert error" role="alert" hidden></div>
+
+          <div class="form-actions">
+            <button id="analyzeButton" class="primary-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.5L18 9.2l-4.2 1.7L12 15.5l-1.8-4.6L6 9.2l4.2-1.7L12 3ZM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
+              <span id="analyzeButtonLabel">Analisis dengan AI</span>
+            </button>
+            <button id="cancelButton" class="secondary-button" type="button" hidden>Batal</button>
+            <p class="privacy-mini"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5z"/></svg> API key tidak pernah ikut ke hasil, histori, atau file ekspor.</p>
+          </div>
+        </form>
+
+        <div id="progressPanel" class="progress-panel" aria-live="polite" hidden>
+          <div class="progress-copy">
+            <span class="spinner" aria-hidden="true"></span>
+            <div><strong id="progressTitle">AI sedang menganalisis…</strong><small id="progressDetail">Menyiapkan permintaan</small></div>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress-track" aria-hidden="true"><div id="progressBar"></div></div>
+        </div>
+      </div>
+
+      <aside class="panel guide-panel" aria-labelledby="guideTitle">
+        <div class="panel-heading compact">
+          <div>
+            <span class="section-kicker">Panduan singkat</span>
+            <h2 id="guideTitle">Deskripsi yang membantu</h2>
+          </div>
+          <button class="icon-button" id="toggleGuideButton" type="button" aria-expanded="true" aria-controls="guideContent" aria-label="Tutup panduan">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+        <div id="guideContent">
+          <p class="guide-lead">Untuk memperoleh hasil yang lebih akurat, jelaskan:</p>
+          <ul class="guide-list">
+            <li><span>01</span><div><strong>Barang apa</strong><small>Nama umum dan nama teknis bila ada.</small></div></li>
+            <li><span>02</span><div><strong>Terbuat dari apa</strong><small>Bahan dominan dan komposisinya.</small></div></li>
+            <li><span>03</span><div><strong>Digunakan untuk apa</strong><small>Fungsi utama, bukan hanya lokasi penggunaan.</small></div></li>
+            <li><span>04</span><div><strong>Bagaimana cara kerjanya</strong><small>Tenaga, mekanisme, atau proses kerja.</small></div></li>
+            <li><span>05</span><div><strong>Barang lengkap atau bagian</strong><small>Jelaskan apakah dijual satu set atau komponen.</small></div></li>
+          </ul>
+          <div class="comparison">
+            <div class="comparison-item bad"><span>Kurang jelas</span><p>“Sparepart mobil”</p></div>
+            <div class="comparison-arrow" aria-hidden="true">→</div>
+            <div class="comparison-item good"><span>Lebih baik</span><p>“Filter udara mesin kendaraan berbahan kertas dan plastik untuk menyaring udara masuk ke mesin bensin.”</p></div>
+          </div>
+          <button class="link-card" id="openApiGuideButton" type="button">
+            <span class="link-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h2a4 4 0 0 1 0 8h-2M9 17H7a4 4 0 0 1 0-8h2M8 12h8"/></svg></span>
+            <span><strong>Hubungkan Groq API Key</strong><small>Panduan konfigurasi aman langkah demi langkah</small></span>
+            <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <details class="database-status">
+            <summary>Status basis pengetahuan</summary>
+            <div class="database-grid">
+              <div><span id="offlineCount">16</span><small>Data lokal</small></div>
+              <div><span id="cloudCount">—</span><small>Google Sheets</small></div>
+              <div><span id="databaseStatusText">Menghubungkan…</span><small>Status cloud</small></div>
+            </div>
+          </details>
+        </div>
+      </aside>
+    </section>
+
+    <section id="resultSection" class="result-section shell" aria-labelledby="resultTitle" hidden>
+      <div class="result-head">
+        <div>
+          <span class="section-kicker">Hasil analisis</span>
+          <h2 id="resultTitle">Kandidat HS Code</h2>
+        </div>
+        <div class="result-head-actions">
+          <button id="copyCodeButton" class="secondary-button small" type="button">Salin HS Code</button>
+          <button id="newSearchButton" class="primary-button small" type="button">Pencarian baru</button>
+        </div>
+      </div>
+
+      <div class="result-grid">
+        <article class="result-primary panel">
+          <div class="result-primary-top">
+            <div>
+              <span class="result-label">Recommended HS Code</span>
+              <div id="hsCodeValue" class="hs-code">—</div>
+            </div>
+            <div id="confidenceBadge" class="confidence medium"><span aria-hidden="true">●</span><strong>Medium confidence</strong></div>
+          </div>
+          <p id="productSummary" class="product-summary"></p>
+          <div class="taxonomy-grid">
+            <div><span>Chapter</span><strong id="chapterValue">—</strong></div>
+            <div><span>Heading</span><strong id="headingValue">—</strong></div>
+            <div><span>Subheading</span><strong id="subheadingValue">—</strong></div>
+          </div>
+          <div class="rationale-block">
+            <h3>Classification Rationale</h3>
+            <p id="rationaleValue"></p>
+          </div>
+        </article>
+
+        <aside class="result-actions panel">
+          <h3>Aksi hasil</h3>
+          <button id="copyFullButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h11v13H8zM5 16H3V3h11v2"/></svg><span><strong>Salin analisis lengkap</strong><small>Siap ditempel ke dokumen</small></span></button>
+          <button id="downloadJsonButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span><strong>Unduh hasil</strong><small>Format JSON</small></span></button>
+          <button id="printButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span><strong>Print / simpan PDF</strong><small>Gunakan dialog cetak browser</small></span></button>
+          <button id="shareButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span><strong>Bagikan ringkasan</strong><small>Share atau salin ke clipboard</small></span></button>
+          <button id="refineButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg><span><strong>Perbaiki deskripsi</strong><small>Kembali ke informasi barang</small></span></button>
+        </aside>
+      </div>
+
+      <div class="insight-grid">
+        <article class="panel insight-card">
+          <div class="insight-title"><span class="insight-icon alt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h11M8 12h8M8 17h5M3 7h.01M3 12h.01M3 17h.01"/></svg></span><h3>Alternative Codes</h3></div>
+          <div id="alternativeCodes" class="stack-list"></div>
+        </article>
+        <article class="panel insight-card">
+          <div class="insight-title"><span class="insight-icon missing"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 17h.01"/></svg></span><h3>Missing Information</h3></div>
+          <ul id="missingInformation" class="check-list"></ul>
+        </article>
+        <article class="panel insight-card">
+          <div class="insight-title"><span class="insight-icon verify"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 12l2 2 4-5M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/></svg></span><h3>Verification Checklist</h3></div>
+          <ul id="verificationNotes" class="check-list"></ul>
+        </article>
+      </div>
+
+      <div id="resultWarning" class="inline-alert warning" hidden></div>
+      <div class="disclaimer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.8 2.4 18a2 2 0 0 0 1.8 3h15.6a2 2 0 0 0 1.8-3L13.7 3.8a2 2 0 0 0-3.4 0Z"/></svg><p><strong>Perlu verifikasi resmi.</strong> Hasil analisis AI merupakan rekomendasi awal dan bukan penetapan resmi kepabeanan. Verifikasi kembali dengan BTKI, INSW, peraturan kepabeanan, atau pihak berwenang sebelum digunakan dalam dokumen resmi.</p></div>
+    </section>
+
+    <section id="bulkResultSection" class="result-section shell" aria-labelledby="bulkResultTitle" hidden>
+      <div class="panel bulk-result-card">
+        <div class="bulk-result-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></div>
+        <div>
+          <span class="section-kicker">Pemrosesan selesai</span>
+          <h2 id="bulkResultTitle">Dokumen CIPL siap diunduh</h2>
+          <p id="bulkResultSummary"></p>
+        </div>
+        <button id="downloadExcelButton" class="primary-button" type="button">Unduh hasil Excel</button>
+      </div>
+    </section>
+
+    <section class="history-section shell" aria-labelledby="historyTitle">
+      <div class="section-heading-row">
+        <div>
+          <span class="section-kicker">Tersimpan di perangkat ini</span>
+          <h2 id="historyTitle">Histori pencarian</h2>
+        </div>
+        <button id="clearHistoryButton" class="text-button danger-text" type="button" hidden>Hapus semua</button>
+      </div>
+      <div id="historyEmpty" class="empty-state panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>
+        <h3>Belum ada histori</h3>
+        <p>Hasil analisis manual akan tersimpan secara lokal di browser ini. Groq API key tidak pernah disimpan di histori.</p>
+      </div>
+      <div id="historyToolbar" class="history-toolbar" hidden>
+        <label class="search-input"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="historySearch" type="search" placeholder="Cari nama barang atau HS Code" aria-label="Cari histori"></label>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+
+    <section class="privacy-section shell" aria-labelledby="privacyTitle">
+      <div class="privacy-card">
+        <div class="privacy-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-5"/></svg></div>
+        <div><span class="section-kicker">Privasi & keamanan</span><h2 id="privacyTitle">Kontrol data tetap di tangan Anda.</h2><p>Deskripsi barang dikirim ke Groq hanya saat analisis dijalankan. Histori tersimpan lokal di perangkat ini dan dapat dihapus. Jangan pernah membagikan API key atau memasukkannya ke URL.</p></div>
+        <button id="removeLocalDataButton" class="secondary-button" type="button">Hapus data lokal</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <a class="footer-brand" href="https://posnew.com" target="_blank" rel="noopener noreferrer"><span class="brand-mark small" aria-hidden="true"><svg viewBox="0 0 36 36"><path d="M7 10.5 18 4l11 6.5v15L18 32 7 25.5v-15Z" fill="currentColor" opacity=".14"/><path d="m10 12 8-4.7 8 4.7-8 4.7-8-4.7Z" fill="currentColor"/></svg></span><strong>PosNew Hub</strong></a>
+      <p>Practical tools for smarter logistics decisions.</p>
+      <span>© 2026</span>
     </div>
-</div>
+  </footer>
 
-<footer class="dashboard-footer">
-    <div class="footer-brand">
-        <i data-lucide="layers" style="color: #EF4123; width: 18px; height: 18px;"></i>
-        PosNew Hub
+  <div id="apiModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="apiModalTitle" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card" tabindex="-1">
+      <button class="modal-close icon-button" type="button" data-close-modal aria-label="Tutup panduan API key"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="modal-head">
+        <span class="modal-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h2a4 4 0 0 1 0 8h-2M9 17H7a4 4 0 0 1 0-8h2M8 12h8"/></svg></span>
+        <div><span class="section-kicker">Koneksi AI</span><h2 id="apiModalTitle">Hubungkan Groq API Key</h2><p>Gunakan key dari Groq Console atau konfigurasi secret di Cloudflare Pages. Key tidak pernah ditulis ke source code.</p></div>
+      </div>
+
+      <div id="serverKeyNotice" class="inline-alert success" hidden>Secret <code>GROQ_API_KEY</code> sudah aktif di server. Anda tidak perlu memasukkan key pribadi.</div>
+      <div id="apiKeyFormArea">
+        <label class="field-label" for="groqInput">Groq API Key</label>
+        <div class="password-field">
+          <input id="groqInput" type="password" autocomplete="off" spellcheck="false" placeholder="gsk_••••••••••••••••" aria-describedby="keySecurityNote">
+          <button id="toggleKeyVisibility" class="icon-button" type="button" aria-label="Tampilkan API key"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button>
+        </div>
+        <label class="checkbox-row"><input id="rememberKey" type="checkbox"><span><strong>Ingat di perangkat ini</strong><small>Opsional. Jika tidak dipilih, key hanya disimpan sampai tab/sesi browser ditutup.</small></span></label>
+        <p id="keySecurityNote" class="security-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> Groq hanya menampilkan API key lengkap saat key dibuat. Simpan key tersebut dengan aman.</p>
+        <div id="apiFeedback" class="inline-alert" aria-live="polite" hidden></div>
+        <div class="modal-actions">
+          <button id="testKeyButton" class="secondary-button" type="button">Test Connection</button>
+          <button id="saveKeyButton" class="primary-button" type="button">Simpan dan gunakan</button>
+          <button id="removeKeyButton" class="text-button danger-text" type="button" hidden>Remove API Key</button>
+        </div>
+      </div>
+
+      <div class="api-steps">
+        <h3>Cara mendapatkan Groq API key</h3>
+        <ol>
+          <li><span>1</span><div>Buka <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Groq Console</a>, lalu daftar atau masuk.</div></li>
+          <li><span>2</span><div>Pilih project dan tekan <strong>Create API Key</strong>.</div></li>
+          <li><span>3</span><div>Beri nama key, misalnya <code>hs-posnew</code>, kemudian salin key.</div></li>
+          <li><span>4</span><div>Kembali ke halaman ini, tempel key, lalu tekan <strong>Test Connection</strong>.</div></li>
+        </ol>
+        <a class="external-button" href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Get Groq API Key <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6"/></svg></a>
+      </div>
     </div>
-    <p class="footer-desc">Sistem utilitas ini dikembangkan secara independen untuk optimalisasi efisiensi layanan logistik B2B dan Ritel.</p>
-    <div class="footer-creator-badge">
-        <i data-lucide="code-2" style="color: #EF4123; width: 14px; height: 14px;"></i>
-        Inovasi oleh <strong>Ikhsan Radiansyah</strong> &copy; 2026
+  </div>
+
+  <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
+    <div class="modal-backdrop" data-close-confirm></div>
+    <div class="modal-card confirm-card" tabindex="-1">
+      <span class="modal-icon warning-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.8 2.4 18a2 2 0 0 0 1.8 3h15.6a2 2 0 0 0 1.8-3L13.7 3.8a2 2 0 0 0-3.4 0Z"/></svg></span>
+      <h2 id="confirmTitle">Hapus semua histori?</h2>
+      <p id="confirmMessage">Tindakan ini tidak dapat dibatalkan.</p>
+      <div class="modal-actions end"><button class="secondary-button" type="button" data-close-confirm>Batal</button><button id="confirmActionButton" class="danger-button" type="button">Hapus</button></div>
     </div>
-</footer>
+  </div>
 
-<script>
-    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysYOk1lUTLpMFViAJPXh_hAtmEuX5UmfwQzz1OHqvbfQD-lfDH-vEGhuMeQ5oXv2Gz4Q/exec";
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-    let GROQ_API_KEY = localStorage.getItem('pos_batam_groq_key') || "";
-    
-    function updateKeyUI() {
-        if (GROQ_API_KEY) {
-            const masked = GROQ_API_KEY.substring(0,6) + "..." + GROQ_API_KEY.substring(GROQ_API_KEY.length-4);
-            document.getElementById('keyStatusText').innerHTML = `✅ Mesin AI Aktif (${masked})`;
-            document.getElementById('keyStatusText').style.color = "#15803D";
-            document.getElementById('groqInput').value = GROQ_API_KEY;
-        }
-    }
-
-    function saveGroqKey() {
-        const inputKey = document.getElementById('groqInput').value.trim();
-        if(inputKey) {
-            localStorage.setItem('pos_batam_groq_key', inputKey);
-            GROQ_API_KEY = inputKey;
-            updateKeyUI();
-            alert("✅ Kunci Groq berhasil disimpan!");
-        }
-    }
-    updateKeyUI();
-
-    let cloudDB = {};
-    const OFFLINE_DB = {
-        'PAKAIAN': '6109.10.00', 'BAJU': '6109.10.00', 'CELANA': '6103.42.00', 'KEMEJA': '6205.20.00',
-        'TV': '8528.72.92', 'TELEVISI': '8528.72.92', 'MEJA': '9403.20.90', 'TAS': '4202.22.10',
-        'BUKU': '4901.99.90', 'BANTAL': '9404.90.00', 'PAMPERS': '9619.00.10', 'TIMBANGAN': '8423.10.10',
-        'SAJADAH': '5705.00.00', 'MUKENA': '6211.11.90', 'TRIPOD': '9006.91.00', 'KULKAS': '8418.10.11'
-    };
-
-    async function loadCloudDatabase() {
-        try {
-            const res = await fetch(GOOGLE_APPS_SCRIPT_URL);
-            cloudDB = await res.json();
-            document.getElementById('statusTag').innerText = `✅ Google Sheets Terhubung (${Object.keys(cloudDB).length} Barang Tersimpan)`;
-        } catch(e) {
-            document.getElementById('statusTag').innerText = "⚠️ Gagal Hubungi Google Sheets";
-            document.getElementById('statusTag').style.background = "#FEF2F2"; document.getElementById('statusTag').style.color = "#EF4444";
-        }
-    }
-    loadCloudDatabase();
-
-    let finalWorkbook = null;
-    let selectedFile = null;
-    
-    // ==========================================
-    // LOGIKA DRAG AND DROP DITAMBAHKAN DI SINI
-    // ==========================================
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-
-    // Memicu klik pada fileInput saat dropZone diklik
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    // Mencegah perilaku default browser (seperti membuka file di tab baru)
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Menambahkan kelas 'dragover' untuk efek visual saat file ditarik ke area
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-    });
-
-    // Menangani file yang dijatuhkan (drop)
-    dropZone.addEventListener('drop', handleDrop, false);
-
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        if(files.length > 0) {
-            handleFileSelect(files[0]);
-        }
-    }
-
-    // Menangani file yang dipilih melalui dialog klik (cara lama)
-    fileInput.addEventListener('change', function(e) {
-        if(e.target.files.length > 0) {
-            handleFileSelect(e.target.files[0]);
-        }
-    });
-
-    // Fungsi utama pemrosesan awal file (dipanggil oleh Drop maupun Klik)
-    function handleFileSelect(file) {
-        if(!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-            alert("⚠️ Harap unggah file Excel yang valid (.xlsx atau .xls)!");
-            return;
-        }
-        selectedFile = file;
-        document.getElementById('dropZone').style.display = 'none';
-        document.getElementById('selectedFileArea').style.display = 'block';
-        document.getElementById('fileNameDisplay').innerText = file.name;
-    }
-    // ==========================================
-
-    function removeSelectedFile() {
-        selectedFile = null;
-        document.getElementById('fileInput').value = ""; 
-        document.getElementById('selectedFileArea').style.display = 'none';
-        document.getElementById('dropZone').style.display = 'block';
-    }
-
-    function submitFile() {
-        if(!selectedFile) return;
-        if(!GROQ_API_KEY) { alert("⛔ Kunci Groq belum diisi! Silakan isi terlebih dahulu di kotak atas."); return; }
-
-        document.getElementById('selectedFileArea').style.display = 'none';
-        document.getElementById('searchOverlay').style.display = 'block';
-        
-        const reader = new FileReader();
-        reader.onload = async function(ev) {
-            const wb = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
-            await processExcel(wb);
-        };
-        reader.readAsArrayBuffer(selectedFile);
-    }
-
-    async function processExcel(wb) {
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
-        let headerIdx = -1, colNama = -1, colHS = -1;
-        
-        for(let r=0; r<rows.length; r++){
-            let rData = rows[r].map(v => String(v).toUpperCase());
-            let tempColNama = rData.findIndex(v => v.includes("BARANG"));
-            let tempColHS = rData.findIndex(v => v.includes("HS"));
-            if(tempColNama !== -1 && tempColHS !== -1){
-                headerIdx = r; colNama = tempColNama; colHS = tempColHS; break;
-            }
-        }
-
-        let needsAI = [];
-        let rowMap = {};
-        const COMBINED_DB = { ...OFFLINE_DB, ...cloudDB };
-
-        for(let r=headerIdx+1; r<rows.length; r++){
-            let nama = String(rows[r][colNama] || "").trim().toUpperCase();
-            if(!nama) continue;
-            let matched = false;
-            for(let key in COMBINED_DB) {
-                if(nama.includes(key)) { rows[r][colHS] = COMBINED_DB[key]; matched = true; break; }
-            }
-            if(!matched && !rows[r][colHS]) {
-                if(!rowMap[nama]) { needsAI.push(nama); rowMap[nama] = []; }
-                rowMap[nama].push(r);
-            }
-        }
-
-        if(needsAI.length > 0) {
-            document.getElementById('progressCounter').innerText = "Menghubungi AI Groq...";
-            const result = await callGroq(needsAI);
-            
-            if(result) {
-                let newDataToSave = {};
-                for(let item in result) {
-                    let uppercaseItem = item.toUpperCase();
-                    if(rowMap[uppercaseItem]) {
-                        rowMap[uppercaseItem].forEach(idx => rows[idx][colHS] = result[item]);
-                    }
-                    if(!cloudDB[uppercaseItem] && !OFFLINE_DB[uppercaseItem]) {
-                        newDataToSave[uppercaseItem] = result[item];
-                    }
-                }
-                
-                if(Object.keys(newDataToSave).length > 0) {
-                    await saveToGoogleSheets(newDataToSave);
-                }
-            }
-        } else {
-             document.getElementById('pBar').style.width = "100%";
-        }
-        
-        finalWorkbook = wb;
-        const newSheet = XLSX.utils.aoa_to_sheet(rows);
-        wb.Sheets[wb.SheetNames[0]] = newSheet;
-        
-        document.getElementById('progressCounter').innerText = "PROSES SELESAI!";
-        document.getElementById('itemStatus').innerText = "Dokumen siap diunduh.";
-        document.getElementById('pBar').style.backgroundColor = "#10B981";
-        document.getElementById('searchOverlay').style.display = 'none';
-        document.getElementById('dlBtn').style.display = 'block';
-    }
-
-    async function callGroq(items) {
-        try {
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [{ role: "system", content: "Klasifikasi HS Code 8-digit. Output JSON MURNI {BARANG: HSCODE}. Semua HURUF KAPITAL." },
-                               { role: "user", content: JSON.stringify(items) }],
-                    response_format: { type: "json_object" }
-                })
-            });
-            const data = await res.json();
-            return JSON.parse(data.choices[0].message.content);
-        } catch(e) { return null; }
-    }
-
-    async function saveToGoogleSheets(newData) {
-        document.getElementById('itemStatus').innerText = "Menyimpan ke Google Sheets...";
-        try {
-            await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(newData) 
-            });
-            await loadCloudDatabase(); 
-        } catch(e) { console.error("Gagal simpan ke Sheets:", e); }
-    }
-
-    function downloadResult() { XLSX.writeFile(finalWorkbook, "HASIL_CIPL_KCU_BATAM.xlsx"); setTimeout(() => location.reload(), 1000); }
-</script>
-
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-</script>
-
+  <script src="/app.js" defer></script>
 </body>
 </html>
