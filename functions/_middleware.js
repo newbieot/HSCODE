@@ -18,6 +18,14 @@ export async function onRequest(context) {
   const response = await context.next();
   const headers = new Headers(response.headers);
   Object.entries(SECURITY_HEADERS).forEach(([name, value]) => headers.set(name, value));
-  if (url.pathname.startsWith('/api/')) headers.set('Cache-Control', 'no-store');
+  if (url.pathname.startsWith('/api/')) {
+    headers.set('Cache-Control', 'no-store');
+  } else if (url.pathname === '/' || url.pathname.endsWith('.html')) {
+    // HTML must revalidate so a deployment cannot keep referencing stale assets.
+    headers.set('Cache-Control', 'no-cache, must-revalidate');
+  } else if (/\/assets\/.*-v\d+\.\d+\.\d+\.(?:css|js)$/.test(url.pathname)) {
+    // Versioned assets are safe to cache permanently because their URL changes on updates.
+    headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  }
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

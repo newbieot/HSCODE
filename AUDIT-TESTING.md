@@ -87,3 +87,11 @@ Hasil: **PASS**
 - Seluruh ID HTML unik.
 - Seluruh aset lokal yang direferensikan tersedia.
 - ZIP dibuat dengan file repository langsung di root, tanpa folder bertingkat ganda.
+
+## Perbaikan cache footer v2.0.2
+
+- Penyebab footer polos setelah deploy dikonfirmasi: `index.html` baru menggunakan class footer baru, tetapi URL `/styles.css` tetap sama sehingga browser/CDN dapat menyajikan CSS versi sebelumnya yang belum memiliki selector `.dashboard-footer`.
+- CSS dan JavaScript dipindahkan ke URL terversi `/assets/styles-v2.0.2.css` dan `/assets/app-v2.0.2.js`.
+- HTML diatur untuk selalu revalidate, sedangkan aset terversi menggunakan cache immutable melalui `functions/_middleware.js` dan `_headers`.
+- Computed-style test Chromium: footer `display:flex`, tinggi `38px`, latar `rgb(15, 23, 42)`, garis atas oranye `2px`, dan alignment tengah. Hasil: **PASS**.
+

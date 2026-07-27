@@ -1,5 +1,7 @@
 # HS Code Finder Indonesia
 
+Versi: **2.0.2**
+
 Aplikasi web ringan untuk membantu menemukan kandidat HS Code melalui deskripsi barang dan pemrosesan massal dokumen CIPL Excel. Aplikasi ini menggunakan Groq API dan dapat langsung dideploy ke Cloudflare Pages tanpa build command.
 
 > Hasil AI merupakan rekomendasi awal, bukan penetapan resmi kepabeanan. Selalu verifikasi melalui BTKI, INSW, peraturan yang berlaku, atau pihak berwenang.
@@ -14,20 +16,22 @@ Aplikasi web ringan untuk membantu menemukan kandidat HS Code melalui deskripsi 
 - Histori lokal yang dapat dicari, dibuka, disalin, dihapus per item, atau dibersihkan seluruhnya.
 - Loading state, cancel request, timeout, validasi, inline error, toast, dan respons non-JSON yang aman.
 - Aksesibilitas keyboard, focus state, focus trap modal, aria-live, serta dukungan `prefers-reduced-motion`.
-- SEO, manifest, sitemap, robots.txt, halaman 404, structured data, dan security headers.
+- SEO, manifest, sitemap, robots.txt, halaman 404, structured data, security headers, serta cache-busting aset.
 
 ## Struktur repository
 
 ```text
 .
 ├── index.html
-├── styles.css
-├── app.js
+├── assets
+│   ├── styles-v2.0.2.css
+│   └── app-v2.0.2.js
 ├── favicon-hscode.png
 ├── manifest.webmanifest
 ├── robots.txt
 ├── sitemap.xml
 ├── 404.html
+├── _headers
 ├── database.json
 ├── CHANGELOG.md
 └── functions
@@ -110,7 +114,7 @@ Aplikasi mempertahankan integrasi Google Apps Script lama untuk:
 - menyimpan mapping baru yang diperoleh dari analisis batch;
 - fallback ke database offline jika Google Sheets tidak tersedia.
 
-URL Apps Script dikonfigurasi sekali di `app.js`. Pastikan deployment Apps Script mengizinkan request dari domain aplikasi dan tidak mengembalikan data sensitif.
+URL Apps Script dikonfigurasi sekali di `assets/app-v2.0.2.js`. Pastikan deployment Apps Script mengizinkan request dari domain aplikasi dan tidak mengembalikan data sensitif.
 
 ## Troubleshooting
 

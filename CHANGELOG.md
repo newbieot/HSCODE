@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.2 — 2026-07-27
+
+### Fixed
+- Memperbaiki footer yang dapat tampil sebagai teks polos setelah deploy akibat browser atau CDN masih menggunakan `styles.css` versi lama.
+- CSS dan JavaScript utama kini memakai nama file terversi di folder `assets`, sehingga deployment baru selalu memuat aset yang sesuai.
+- HTML diberi kebijakan cache `no-cache, must-revalidate`; aset terversi diberi cache immutable melalui middleware dan `_headers`.
+- Struktur dan tampilan footer tetap mengikuti footer `lacak.posnew.com`: bar gelap 38px, garis oranye, brand kiri, deskripsi tengah, dan badge kreator kanan.
+
 ## 2.0.1 — 27 Juli 2026
 
 - Menyesuaikan footer agar konsisten dengan desain `lacak.posnew.com`.
