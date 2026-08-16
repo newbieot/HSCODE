@@ -256,6 +256,16 @@ textarea.invalid, input.invalid { border-color: var(--red-700); background: #fff
 .comparison-item.bad { color: var(--red-700); background: var(--red-100); }
 .comparison-item.good { color: var(--green-700); background: var(--green-100); }
 .comparison-arrow { color: var(--slate-400); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.format-table { width: 100%; margin-top: 16px; border: 1px solid var(--slate-200); border-radius: 12px; border-collapse: separate; border-spacing: 0; overflow: hidden; font-size: 10.5px; }
+.format-table th, .format-table td { padding: 7px 9px; text-align: left; line-height: 1.4; }
+.format-table thead th { color: var(--navy-950); background: var(--blue-100); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; }
+.format-table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--slate-100); }
+.format-table td:nth-child(2) { color: var(--slate-800); }
+.format-table .code-cell { color: var(--slate-400); font-style: italic; }
+.format-note { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 0; color: var(--slate-500); font-size: 10px; }
+.format-note svg { width: 14px; height: 14px; flex: 0 0 auto; margin-top: 1px; color: var(--blue-700); }
 .link-card { display: grid; width: 100%; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin-top: 18px; padding: 13px; border: 1px solid var(--slate-200); border-radius: 14px; text-align: left; background: white; cursor: pointer; }
 .link-card:hover { border-color: #b9c6df; background: var(--blue-100); }
 .link-card-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; color: var(--blue-700); background: var(--blue-100); }

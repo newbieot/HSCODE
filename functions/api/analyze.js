@@ -8,29 +8,6 @@ const RATE_WINDOW_MS = 60_000;
 const RATE_LIMIT = 15;
 const rateBuckets = new Map();
 
-const MANUAL_SYSTEM_PROMPT = `Anda adalah asisten klasifikasi perdagangan yang membantu menyusun kandidat HS Code secara hati-hati.
-Tugas Anda adalah memberikan rekomendasi awal, bukan penetapan resmi. Jangan menampilkan chain-of-thought, langkah penalaran internal, atau klaim kepastian hukum.
-Gunakan Bahasa Indonesia yang ringkas dan profesional. Keluarkan JSON MURNI tanpa markdown dengan struktur:
-{
-  "product_summary": "ringkasan barang",
-  "recommended_hs_code": "kode kandidat utama",
-  "confidence": "high|medium|low|insufficient_information",
-  "chapter": "nomor dan uraian singkat bab",
-  "heading": "nomor dan uraian singkat heading",
-  "subheading": "nomor dan uraian singkat subheading",
-  "reasoning_summary": "alasan klasifikasi ringkas berbasis karakter, fungsi, bahan, dan penggunaan",
-  "alternative_codes": [{"code":"...","description":"...","reason":"..."}],
-  "missing_information": ["pertanyaan/informasi yang masih diperlukan"],
-  "verification_notes": ["langkah verifikasi resmi"],
-  "warning": "peringatan singkat bila perlu"
-}
-Aturan:
-- Jangan mengarang spesifikasi yang tidak diberikan.
-- Bila informasi tidak cukup, turunkan confidence dan berikan pertanyaan lanjutan yang spesifik.
-- Tampilkan kode dengan pemisah titik bila sesuai, tetapi jangan memaksakan digit yang tidak didukung informasi.
-- reasoning_summary harus berupa alasan ringkas yang dapat ditampilkan kepada pengguna, bukan proses berpikir internal.
-- Sertakan verifikasi melalui BTKI/INSW/peraturan kepabeanan yang berlaku.`;
-
 const BATCH_SYSTEM_PROMPT = `Klasifikasi kandidat HS Code 8-digit untuk daftar nama barang CIPL.
 Pertahankan perilaku sistem lama: output harus berupa JSON MURNI berbentuk objek {"NAMA BARANG":"HSCODE"} dan semua key nama barang harus HURUF KAPITAL.
 Jangan menambahkan markdown, penjelasan, confidence, atau teks lain.
@@ -70,25 +47,6 @@ function isRateLimited(request) {
 
 function sanitizeText(value, maxLength = 2000) {
   return String(value ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim().slice(0, maxLength);
-}
-
-function normalizeProduct(product) {
-  if (!product || typeof product !== 'object' || Array.isArray(product)) return {};
-  const allowed = {
-    description: 2000,
-    productName: 160,
-    productDescription: 1600,
-    material: 180,
-    mainFunction: 220,
-    workingMethod: 220,
-    usage: 220,
-    condition: 100,
-    packaging: 180,
-    composition: 220,
-    originCountry: 100,
-    additionalNotes: 1000
-  };
-  return Object.fromEntries(Object.entries(allowed).map(([key, limit]) => [key, sanitizeText(product[key], limit)]).filter(([, value]) => value));
 }
 
 function getApiKey(request, env) {
@@ -181,25 +139,6 @@ async function callGroq(auth, body) {
   }
 }
 
-async function handleManual(auth, payload) {
-  const product = normalizeProduct(payload.product);
-  if (!Object.keys(product).length) return json({ code: 'empty_description', message: 'Deskripsi barang tidak boleh kosong.' }, 400);
-  const combinedLength = Object.values(product).join(' ').length;
-  if (combinedLength < 12) return json({ code: 'description_too_short', message: 'Deskripsi barang masih terlalu pendek. Tambahkan bahan, fungsi, dan cara kerja.' }, 400);
-
-  const userContent = `Analisis barang berikut dan keluarkan JSON sesuai struktur wajib. Jangan menampilkan chain-of-thought.\n\n${JSON.stringify(product, null, 2)}`;
-  return callGroq(auth, {
-    model: MODEL,
-    messages: [
-      { role: 'system', content: MANUAL_SYSTEM_PROMPT },
-      { role: 'user', content: userContent }
-    ],
-    response_format: { type: 'json_object' },
-    temperature: 0.15,
-    max_completion_tokens: 1800
-  });
-}
-
 async function handleBatch(auth, payload) {
   if (!Array.isArray(payload.items)) return json({ code: 'invalid_items', message: 'Daftar barang tidak valid.' }, 400);
   const items = payload.items.map(item => sanitizeText(item, 300).toUpperCase()).filter(Boolean).slice(0, MAX_BATCH_ITEMS);
@@ -238,7 +177,6 @@ export async function onRequest(context) {
   if (!auth.key) return json({ code: 'missing_api_key', message: 'Groq API key belum dikonfigurasi. Tambahkan secret GROQ_API_KEY di Cloudflare Pages atau gunakan key sesi.' }, 401);
 
   if (payload.mode === 'test') return testConnection(auth);
-  if (payload.mode === 'manual') return handleManual(auth, payload);
   if (payload.mode === 'batch') return handleBatch(auth, payload);
   return json({ code: 'invalid_mode', message: 'Mode analisis tidak dikenal.' }, 400);
 }

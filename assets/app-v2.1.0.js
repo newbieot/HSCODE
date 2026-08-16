@@ -7,8 +7,7 @@
   const STORAGE = {
     sessionKey: 'hs_posnew_groq_session',
     localKey: 'hs_posnew_groq_key',
-    legacyKey: 'pos_batam_groq_key',
-    history: 'hs_posnew_history_v2'
+    legacyKey: 'pos_batam_groq_key'
   };
 
   const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysYOk1lUTLpMFViAJPXh_hAtmEuX5UmfwQzz1OHqvbfQD-lfDH-vEGhuMeQ5oXv2Gz4Q/exec';
@@ -20,38 +19,11 @@
     SAJADAH: '5705.00.00', MUKENA: '6211.11.90', TRIPOD: '9006.91.00', KULKAS: '8418.10.11'
   };
 
-  const DEMO_RESULT = {
-    product_summary: 'Filter udara untuk mesin kendaraan bermotor, berbahan media kertas berlipat dengan rangka plastik, digunakan untuk menyaring partikel dari udara sebelum masuk ke mesin bensin.',
-    recommended_hs_code: '8421.31.10',
-    confidence: 'high',
-    chapter: '84 — Mesin dan peralatan mekanis',
-    heading: '8421 — Mesin dan aparatus penyaring atau pemurni',
-    subheading: '8421.31 — Filter udara masuk untuk mesin pembakaran dalam',
-    reasoning_summary: 'Karakter utama barang adalah alat penyaring udara masuk yang dirancang khusus untuk mesin pembakaran dalam. Fungsi penyaringan dan penggunaan spesifiknya lebih menentukan klasifikasi dibanding bahan kertas atau plastik pembentuknya.',
-    alternative_codes: [
-      { code: '8421.39.90', description: 'Mesin/aparatus penyaring gas lainnya', reason: 'Perlu dipertimbangkan bila barang bukan khusus untuk udara masuk mesin pembakaran dalam.' },
-      { code: '8421.99.99', description: 'Bagian lainnya dari alat penyaring', reason: 'Relevan bila yang diimpor hanya elemen/bagian dan bukan unit filter lengkap.' }
-    ],
-    missing_information: [
-      'Pastikan barang merupakan unit filter lengkap atau hanya elemen pengganti.',
-      'Konfirmasi jenis kendaraan dan mesin yang menjadi tujuan penggunaan.'
-    ],
-    verification_notes: [
-      'Bandingkan uraian lengkap pada BTKI yang berlaku.',
-      'Periksa catatan Bagian XVI dan catatan Bab 84.',
-      'Cocokkan brosur, foto, bahan, dan fungsi dengan dokumen impor.',
-      'Mintakan penetapan resmi bila nilai atau risikonya material.'
-    ],
-    warning: ''
-  };
-
   const state = {
-    mode: 'quick',
     serverKeyActive: null,
     apiStatus: 'checking',
     selectedFile: null,
     finalWorkbook: null,
-    currentResult: null,
     currentController: null,
     cloudDB: {},
     previousFocus: null,
@@ -62,11 +34,6 @@
 
   const els = {
     form: $('#analysisForm'),
-    modeTabs: $$('.mode-tab'),
-    quickDescription: $('#quickDescription'),
-    quickCounter: $('#quickCounter'),
-    qualityHint: $('#qualityHint'),
-    productName: $('#productName'),
     formError: $('#formError'),
     analyzeButton: $('#analyzeButton'),
     analyzeButtonLabel: $('#analyzeButtonLabel'),
@@ -81,13 +48,7 @@
     selectedFileCard: $('#selectedFileCard'),
     fileNameDisplay: $('#fileNameDisplay'),
     fileSizeDisplay: $('#fileSizeDisplay'),
-    resultSection: $('#resultSection'),
     bulkResultSection: $('#bulkResultSection'),
-    historyList: $('#historyList'),
-    historyEmpty: $('#historyEmpty'),
-    historyToolbar: $('#historyToolbar'),
-    clearHistoryButton: $('#clearHistoryButton'),
-    historySearch: $('#historySearch'),
     apiModal: $('#apiModal'),
     confirmModal: $('#confirmModal'),
     apiStatusDot: $('#apiStatusDot'),
@@ -256,86 +217,6 @@
     }
   }
 
-  function switchMode(mode) {
-    state.mode = mode;
-    els.modeTabs.forEach(tab => {
-      const active = tab.dataset.mode === mode;
-      tab.classList.toggle('is-active', active);
-      tab.setAttribute('aria-selected', String(active));
-      const panel = $(`#${tab.getAttribute('aria-controls')}`);
-      if (panel) panel.hidden = !active;
-    });
-    els.analyzeButtonLabel.textContent = mode === 'bulk' ? 'Proses dokumen Excel' : 'Analisis dengan AI';
-    hideInline(els.formError);
-  }
-
-  function updateDescriptionQuality() {
-    const text = els.quickDescription.value.trim();
-    els.quickCounter.textContent = `${els.quickDescription.value.length}/2000`;
-    els.qualityHint.classList.remove('good', 'warn');
-    if (!text) {
-      els.qualityHint.innerHTML = '<span class="quality-icon" aria-hidden="true">i</span><span>Deskripsi yang rinci membantu AI membedakan heading dan subheading yang mirip.</span>';
-    } else if (text.length < 30) {
-      els.qualityHint.classList.add('warn');
-      els.qualityHint.innerHTML = '<span class="quality-icon" aria-hidden="true">!</span><span>Deskripsi masih terlalu umum. Tambahkan bahan, fungsi, dan cara kerja.</span>';
-    } else {
-      const signals = ['bahan', 'untuk', 'digunakan', 'motor', 'mesin', 'berfungsi', 'terbuat', 'daya', 'kapasitas', 'komposisi'];
-      const score = signals.filter(word => text.toLowerCase().includes(word)).length;
-      if (score >= 2 || text.length >= 90) {
-        els.qualityHint.classList.add('good');
-        els.qualityHint.innerHTML = '<span class="quality-icon" aria-hidden="true">✓</span><span>Deskripsi cukup informatif untuk dianalisis. Tetap tinjau informasi yang masih kurang pada hasil.</span>';
-      } else {
-        els.qualityHint.classList.add('warn');
-        els.qualityHint.innerHTML = '<span class="quality-icon" aria-hidden="true">!</span><span>Tambahkan bahan, fungsi, cara kerja, atau apakah barang merupakan bagian/produk lengkap.</span>';
-      }
-    }
-  }
-
-  function fillExample() {
-    if (state.mode === 'bulk') switchMode('quick');
-    if (state.mode === 'quick') {
-      els.quickDescription.value = 'Filter udara mesin kendaraan bermotor berbahan kertas berlipat dan plastik, digunakan untuk menyaring partikel dari udara yang masuk ke mesin bensin. Barang dijual sebagai unit filter pengganti lengkap.';
-      updateDescriptionQuality();
-      els.quickDescription.focus();
-    } else {
-      const values = {
-        productName: 'Filter udara mesin kendaraan bermotor',
-        productDescription: 'Elemen filter berlipat dengan rangka plastik, dijual sebagai unit pengganti lengkap.',
-        material: 'Kertas filter dan plastik',
-        mainFunction: 'Menyaring debu dan partikel dari udara sebelum masuk ke mesin',
-        workingMethod: 'Udara melewati media kertas berlipat yang menangkap partikel',
-        usage: 'Mesin bensin kendaraan bermotor',
-        condition: 'Barang lengkap',
-        packaging: 'Satu unit dalam kotak',
-        composition: 'Media filter kertas dominan dengan rangka plastik',
-        originCountry: 'Indonesia',
-        additionalNotes: 'Produk aftermarket untuk kendaraan penumpang'
-      };
-      Object.entries(values).forEach(([id, value]) => { const el = $(`#${id}`); if (el) el.value = value; });
-      els.productName.focus();
-    }
-  }
-
-  function collectManualPayload() {
-    if (state.mode === 'quick') {
-      const description = els.quickDescription.value.trim();
-      if (!description) {
-        els.quickDescription.classList.add('invalid');
-        throw new Error('Deskripsi barang tidak boleh kosong.');
-      }
-      if (description.length < 12) throw new Error('Deskripsi barang masih terlalu pendek. Tambahkan bahan, fungsi, dan cara kerja.');
-      return { mode: 'manual', input_mode: 'quick', product: { description } };
-    }
-
-    const fields = ['productName', 'productDescription', 'material', 'mainFunction', 'workingMethod', 'usage', 'condition', 'packaging', 'composition', 'originCountry', 'additionalNotes'];
-    const product = Object.fromEntries(fields.map(id => [id, $(`#${id}`).value.trim()]));
-    if (!product.productName) {
-      els.productName.classList.add('invalid');
-      throw new Error('Nama barang wajib diisi pada Detailed Analysis.');
-    }
-    return { mode: 'manual', input_mode: 'detail', product };
-  }
-
   function startProgress(title, detail, initial = 8) {
     stopProgressTimer();
     els.progressPanel.hidden = false;
@@ -364,41 +245,6 @@
   function setBusy(busy) {
     els.analyzeButton.disabled = busy;
     els.cancelButton.hidden = !busy;
-    els.modeTabs.forEach(tab => { tab.disabled = busy; });
-  }
-
-  async function runManualAnalysis() {
-    let payload;
-    try {
-      payload = collectManualPayload();
-    } catch (error) {
-      showInline(els.formError, error.message, 'error');
-      return;
-    }
-
-    hideInline(els.formError);
-    setBusy(true);
-    state.currentController = new AbortController();
-    startProgress('AI sedang menganalisis…', 'Menyusun kandidat HS Code dan langkah verifikasi');
-
-    try {
-      const response = await apiRequest(payload, { signal: state.currentController.signal });
-      setProgress(100, 'Analisis selesai');
-      const result = normalizeResult(response.data);
-      renderResult(result, true);
-      window.setTimeout(() => { els.progressPanel.hidden = true; }, 450);
-    } catch (error) {
-      els.progressPanel.hidden = true;
-      if (error.name === 'AbortError') {
-        toast('Permintaan dibatalkan', 'Tidak ada data hasil yang disimpan.', 'error');
-      } else {
-        handleAnalysisError(error);
-      }
-    } finally {
-      stopProgressTimer();
-      setBusy(false);
-      state.currentController = null;
-    }
   }
 
   function handleAnalysisError(error) {
@@ -410,31 +256,6 @@
     }
   }
 
-  function normalizeResult(raw = {}) {
-    const alternatives = Array.isArray(raw.alternative_codes) ? raw.alternative_codes : [];
-    const missing = Array.isArray(raw.missing_information) ? raw.missing_information : [];
-    const verification = Array.isArray(raw.verification_notes) ? raw.verification_notes : [];
-    const confidenceRaw = String(raw.confidence || 'medium').toLowerCase().replace(/\s+/g, '_');
-    const confidence = ['high', 'medium', 'low', 'insufficient_information'].includes(confidenceRaw) ? confidenceRaw : 'medium';
-    return {
-      product_summary: String(raw.product_summary || 'Ringkasan produk tidak tersedia.'),
-      recommended_hs_code: formatHSCode(raw.recommended_hs_code || raw.hs_code || '—'),
-      confidence,
-      chapter: String(raw.chapter || 'Perlu verifikasi'),
-      heading: String(raw.heading || 'Perlu verifikasi'),
-      subheading: String(raw.subheading || 'Perlu verifikasi'),
-      reasoning_summary: String(raw.reasoning_summary || raw.classification_rationale || 'Alasan klasifikasi tidak tersedia.'),
-      alternative_codes: alternatives.map(item => typeof item === 'string' ? { code: formatHSCode(item), description: '', reason: '' } : {
-        code: formatHSCode(item.code || item.hs_code || ''),
-        description: String(item.description || item.title || ''),
-        reason: String(item.reason || item.note || '')
-      }).filter(item => item.code),
-      missing_information: missing.map(String).filter(Boolean),
-      verification_notes: verification.map(String).filter(Boolean),
-      warning: String(raw.warning || '')
-    };
-  }
-
   function formatHSCode(value) {
     const text = String(value || '').trim();
     if (!text) return '';
@@ -444,180 +265,6 @@
     return text;
   }
 
-  function confidenceLabel(confidence) {
-    const labels = {
-      high: 'High confidence',
-      medium: 'Medium confidence',
-      low: 'Low confidence',
-      insufficient_information: 'Insufficient information'
-    };
-    return labels[confidence] || labels.medium;
-  }
-
-  function renderResult(result, saveHistory = false) {
-    state.currentResult = result;
-    $('#hsCodeValue').textContent = result.recommended_hs_code;
-    $('#productSummary').textContent = result.product_summary;
-    $('#chapterValue').textContent = result.chapter;
-    $('#headingValue').textContent = result.heading;
-    $('#subheadingValue').textContent = result.subheading;
-    $('#rationaleValue').textContent = result.reasoning_summary;
-
-    const badge = $('#confidenceBadge');
-    const confidenceClass = result.confidence === 'insufficient_information' ? 'insufficient' : result.confidence;
-    badge.className = `confidence ${confidenceClass}`;
-    badge.innerHTML = `<span aria-hidden="true">●</span><strong>${confidenceLabel(result.confidence)}</strong>`;
-
-    const alternatives = $('#alternativeCodes');
-    alternatives.innerHTML = '';
-    if (!result.alternative_codes.length) {
-      alternatives.innerHTML = '<p class="empty-mini">Tidak ada alternatif yang disarankan.</p>';
-    } else {
-      result.alternative_codes.forEach(item => {
-        const node = document.createElement('div');
-        node.className = 'stack-item';
-        const strong = document.createElement('strong');
-        strong.textContent = item.code || 'Kode belum pasti';
-        const span = document.createElement('span');
-        span.textContent = [item.description, item.reason].filter(Boolean).join(' — ');
-        node.append(strong, span);
-        alternatives.appendChild(node);
-      });
-    }
-
-    renderList($('#missingInformation'), result.missing_information, 'Tidak ada informasi penting yang ditandai kurang.');
-    renderList($('#verificationNotes'), result.verification_notes, 'Verifikasi melalui BTKI dan sumber resmi yang berlaku.');
-
-    const warning = $('#resultWarning');
-    const lowMessage = result.confidence === 'low' || result.confidence === 'insufficient_information'
-      ? 'Deskripsi barang belum cukup untuk menentukan HS Code secara meyakinkan. Tambahkan informasi yang ditandai sebelum menggunakan hasil.'
-      : '';
-    const warningText = result.warning || lowMessage;
-    if (warningText) showInline(warning, warningText, 'warning'); else hideInline(warning);
-
-    els.bulkResultSection.hidden = true;
-    els.resultSection.hidden = false;
-    if (saveHistory) addHistory(result);
-    els.resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function renderList(container, items, emptyText) {
-    container.innerHTML = '';
-    const values = items.length ? items : [emptyText];
-    values.forEach(value => {
-      const li = document.createElement('li');
-      li.textContent = value;
-      container.appendChild(li);
-    });
-  }
-
-  function resultToText(result = state.currentResult) {
-    if (!result) return '';
-    const alternativeText = result.alternative_codes.length
-      ? result.alternative_codes.map(item => `- ${item.code}: ${[item.description, item.reason].filter(Boolean).join(' — ')}`).join('\n')
-      : '- Tidak ada';
-    const missingText = result.missing_information.length ? result.missing_information.map(item => `- ${item}`).join('\n') : '- Tidak ada';
-    const verificationText = result.verification_notes.length ? result.verification_notes.map(item => `- ${item}`).join('\n') : '- Verifikasi dengan BTKI/INSW';
-    return `HASIL ANALISIS HS CODE\n\nRecommended HS Code: ${result.recommended_hs_code}\nConfidence: ${confidenceLabel(result.confidence)}\nChapter: ${result.chapter}\nHeading: ${result.heading}\nSubheading: ${result.subheading}\n\nProduct Summary\n${result.product_summary}\n\nClassification Rationale\n${result.reasoning_summary}\n\nAlternative Codes\n${alternativeText}\n\nMissing Information\n${missingText}\n\nVerification Checklist\n${verificationText}\n\nDisclaimer: Hasil AI merupakan rekomendasi awal dan bukan penetapan resmi kepabeanan.`;
-  }
-
-  async function copyText(text, successMessage) {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast(successMessage, 'Teks telah disalin ke clipboard.');
-    } catch (_) {
-      const area = document.createElement('textarea');
-      area.value = text;
-      area.setAttribute('readonly', '');
-      area.style.position = 'fixed';
-      area.style.opacity = '0';
-      document.body.appendChild(area);
-      area.select();
-      document.execCommand('copy');
-      area.remove();
-      toast(successMessage, 'Teks telah disalin ke clipboard.');
-    }
-  }
-
-  function downloadJson() {
-    if (!state.currentResult) return;
-    const blob = new Blob([JSON.stringify(state.currentResult, null, 2)], { type: 'application/json;charset=utf-8' });
-    downloadBlob(blob, `hasil-hs-code-${state.currentResult.recommended_hs_code.replace(/\W/g, '') || 'analisis'}.json`);
-  }
-
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  function getHistory() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE.history) || '[]');
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (_) { return []; }
-  }
-
-  function addHistory(result) {
-    const history = getHistory();
-    const item = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      createdAt: new Date().toISOString(),
-      name: result.product_summary.slice(0, 100),
-      code: result.recommended_hs_code,
-      confidence: result.confidence,
-      result
-    };
-    localStorage.setItem(STORAGE.history, JSON.stringify([item, ...history].slice(0, 30)));
-    renderHistory();
-  }
-
-  function renderHistory(query = '') {
-    const normalized = query.trim().toLowerCase();
-    const history = getHistory();
-    const filtered = history.filter(item => `${item.name} ${item.code}`.toLowerCase().includes(normalized));
-    els.historyList.innerHTML = '';
-    els.historyEmpty.hidden = history.length > 0;
-    els.historyToolbar.hidden = history.length === 0;
-    els.clearHistoryButton.hidden = history.length === 0;
-
-    filtered.forEach(item => {
-      const card = document.createElement('article');
-      card.className = 'history-card';
-      card.innerHTML = `
-        <div class="history-card-head"><h3></h3><time></time></div>
-        <div class="history-code"></div>
-        <div class="history-card-foot">
-          <span class="history-confidence"></span>
-          <div class="history-actions">
-            <button type="button" data-action="open" aria-label="Buka hasil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6"/></svg></button>
-            <button type="button" data-action="copy" aria-label="Salin HS Code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h11v13H8zM5 16H3V3h11v2"/></svg></button>
-            <button type="button" data-action="delete" aria-label="Hapus histori"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
-          </div>
-        </div>`;
-      $('h3', card).textContent = item.name;
-      $('time', card).textContent = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(item.createdAt));
-      $('.history-code', card).textContent = item.code;
-      $('.history-confidence', card).textContent = confidenceLabel(item.confidence);
-      $('[data-action="open"]', card).addEventListener('click', () => renderResult(normalizeResult(item.result), false));
-      $('[data-action="copy"]', card).addEventListener('click', () => copyText(item.code, 'HS Code disalin'));
-      $('[data-action="delete"]', card).addEventListener('click', () => deleteHistoryItem(item.id));
-      els.historyList.appendChild(card);
-    });
-  }
-
-  function deleteHistoryItem(id) {
-    const history = getHistory().filter(item => item.id !== id);
-    localStorage.setItem(STORAGE.history, JSON.stringify(history));
-    renderHistory(els.historySearch.value);
-    toast('Histori dihapus');
-  }
-
   function openConfirm(title, message, action) {
     $('#confirmTitle').textContent = title;
     $('#confirmMessage').textContent = message;
@@ -625,22 +272,13 @@
     openModal(els.confirmModal);
   }
 
-  function clearAllHistory() {
-    localStorage.removeItem(STORAGE.history);
-    renderHistory();
-    toast('Histori telah dihapus');
-  }
-
   function clearLocalData() {
-    localStorage.removeItem(STORAGE.history);
     sessionStorage.removeItem(STORAGE.sessionKey);
     localStorage.removeItem(STORAGE.localKey);
-    state.currentResult = null;
-    els.resultSection.hidden = true;
-    renderHistory();
+    els.bulkResultSection.hidden = true;
     updateApiModalUI();
     checkConnection({ silent: true });
-    toast('Data lokal dihapus', 'Histori dan API key tersimpan telah dibersihkan.');
+    toast('Data lokal dihapus', 'API key tersimpan telah dibersihkan.');
   }
 
   function handleSelectedFile(file) {
@@ -666,7 +304,7 @@
     state.selectedFile = null;
     els.fileInput.value = '';
     els.selectedFileCard.hidden = true;
-    $('#dropZoneTitle').textContent = 'Pilih atau tarik file Excel ke sini';
+    $('#dropZoneTitle').textContent = 'Pilih atau tarik file Excel CIPL ke sini';
   }
 
   function formatBytes(bytes) {
@@ -735,7 +373,7 @@
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
     const detection = detectColumns(rows);
     if (detection.headerIdx < 0 || detection.nameCol < 0) {
-      throw new Error('Kolom nama barang tidak ditemukan. Gunakan header yang memuat kata “Barang” atau “Uraian Barang”.');
+      throw new Error('Kolom nama barang tidak ditemukan. Pastikan file memiliki kolom dengan header "Barang", "Uraian", atau "Description". Unduh template resmi agar formatnya sesuai.');
     }
 
     let hsCol = detection.hsCol;
@@ -866,7 +504,6 @@
   }
 
   function renderBulkResult(stats) {
-    els.resultSection.hidden = true;
     els.bulkResultSection.hidden = false;
     $('#bulkResultSummary').textContent = `${stats.totalItems} baris barang diperiksa: ${stats.existingItems} sudah memiliki kode, ${stats.databaseMatches} ditemukan dari database, ${stats.aiMatches} dianalisis AI, dan ${stats.unresolvedItems} masih perlu ditinjau.`;
     els.bulkResultSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -876,6 +513,25 @@
     if (!state.finalWorkbook || !window.XLSX) return;
     XLSX.writeFile(state.finalWorkbook, 'HASIL_CIPL_KCU_BATAM.xlsx', { compression: true });
     toast('File Excel diunduh', 'Hasil tetap mempertahankan worksheet utama dari file sumber.');
+  }
+
+  function downloadTemplate() {
+    if (!window.XLSX) {
+      toast('Template belum siap', 'Pustaka Excel masih dimuat, coba beberapa saat lagi.', 'error');
+      return;
+    }
+    const data = [
+      ['No', 'Barang', 'Jumlah', 'Satuan', 'Hs Code'],
+      ['1', 'Filter udara mesin kendaraan bermotor', 2, 'PCS', ''],
+      ['2', 'Baju anak katun', 12, 'PCS', ''],
+      ['3', 'Televisi LED 43 inch', 1, 'UNIT', '']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{ wch: 6 }, { wch: 42 }, { wch: 9 }, { wch: 10 }, { wch: 14 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'CIPL');
+    XLSX.writeFile(wb, 'TEMPLATE_CIPL.xlsx');
+    toast('Template diunduh', 'Lengkapi kolom "Barang", lalu unggah kembali untuk diproses.');
   }
 
   async function loadCloudDatabase() {
@@ -903,29 +559,10 @@
     $('#databaseStatusText').textContent = status;
   }
 
-  function resetSearch() {
-    els.form.reset();
-    removeSelectedFile();
-    updateDescriptionQuality();
-    els.resultSection.hidden = true;
-    els.bulkResultSection.hidden = true;
-    hideInline(els.formError);
-    switchMode('quick');
-    window.scrollTo({ top: $('.workspace').offsetTop - 80, behavior: 'smooth' });
-    window.setTimeout(() => els.quickDescription.focus(), 450);
-  }
-
   function bindEvents() {
-    els.modeTabs.forEach(tab => tab.addEventListener('click', () => switchMode(tab.dataset.mode)));
-    els.quickDescription.addEventListener('input', () => {
-      els.quickDescription.classList.remove('invalid');
-      updateDescriptionQuality();
-    });
-    $$('input, textarea, select', $('#detailPanel')).forEach(input => input.addEventListener('input', () => input.classList.remove('invalid')));
-    $('#fillExampleButton').addEventListener('click', fillExample);
     els.form.addEventListener('submit', event => {
       event.preventDefault();
-      if (state.mode === 'bulk') runBulkAnalysis(); else runManualAnalysis();
+      runBulkAnalysis();
     });
     els.cancelButton.addEventListener('click', () => state.currentController?.abort());
 
@@ -941,6 +578,7 @@
     }));
     els.dropZone.addEventListener('drop', event => handleSelectedFile(event.dataTransfer.files[0]));
     $('#removeFileButton').addEventListener('click', removeSelectedFile);
+    $('#templateButton').addEventListener('click', downloadTemplate);
 
     $('#toggleGuideButton').addEventListener('click', event => {
       const button = event.currentTarget;
@@ -985,7 +623,7 @@
         return;
       }
       if (!/^gsk_[A-Za-z0-9_-]{12,}$/.test(key)) {
-        showInline(els.apiFeedback, 'Format API key tampaknya tidak valid. Key Groq biasanya diawali “gsk_”.', 'error');
+        showInline(els.apiFeedback, 'Format API key tampaknya tidak valid. Key Groq biasanya diawali "gsk_".', 'error');
         return;
       }
       $('#saveKeyButton').disabled = true;
@@ -1012,25 +650,8 @@
       toast('Groq API key dihapus');
     }));
 
-    $('#copyCodeButton').addEventListener('click', () => state.currentResult && copyText(state.currentResult.recommended_hs_code, 'HS Code disalin'));
-    $('#copyFullButton').addEventListener('click', () => copyText(resultToText(), 'Analisis lengkap disalin'));
-    $('#downloadJsonButton').addEventListener('click', downloadJson);
-    $('#printButton').addEventListener('click', () => window.print());
-    $('#shareButton').addEventListener('click', async () => {
-      const text = resultToText();
-      if (navigator.share) {
-        try { await navigator.share({ title: 'Hasil Analisis HS Code', text }); } catch (_) { /* user cancelled */ }
-      } else {
-        copyText(text, 'Ringkasan disalin');
-      }
-    });
-    $('#refineButton').addEventListener('click', () => $('.workspace').scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    $('#newSearchButton').addEventListener('click', resetSearch);
     $('#downloadExcelButton').addEventListener('click', downloadExcel);
-
-    els.historySearch.addEventListener('input', () => renderHistory(els.historySearch.value));
-    els.clearHistoryButton.addEventListener('click', () => openConfirm('Hapus semua histori?', 'Seluruh hasil analisis lokal di perangkat ini akan dihapus permanen.', clearAllHistory));
-    $('#removeLocalDataButton').addEventListener('click', () => openConfirm('Hapus seluruh data lokal?', 'Histori pencarian dan Groq API key yang tersimpan di browser akan dihapus.', clearLocalData));
+    $('#removeLocalDataButton').addEventListener('click', () => openConfirm('Hapus data lokal?', 'Groq API key yang tersimpan di browser akan dihapus.', clearLocalData));
 
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
@@ -1042,34 +663,13 @@
     });
   }
 
-  function applyPreviewMode() {
-    const preview = new URLSearchParams(location.search).get('preview');
-    if (preview === 'result') {
-      renderResult(DEMO_RESULT, false);
-      window.scrollTo({ top: els.resultSection.offsetTop - 82, behavior: 'auto' });
-    } else if (preview === 'api') {
-      state.serverKeyActive = false;
-      updateApiModalUI();
-      openModal(els.apiModal);
-    } else if (preview === 'error') {
-      state.serverKeyActive = false;
-      updateApiModalUI();
-      openModal(els.apiModal);
-      showInline(els.apiFeedback, 'Groq API key tidak valid. Periksa kembali key atau buat key baru melalui Groq Console.', 'error');
-      setApiStatus('error', 'Groq API key tidak valid');
-    }
-  }
-
   async function init() {
     migrateLegacyKey();
     bindEvents();
-    updateDescriptionQuality();
-    renderHistory();
     updateApiModalUI();
     updateDatabaseStatus('Menghubungkan…');
     loadCloudDatabase();
     await checkConnection({ silent: true });
-    applyPreviewMode();
   }
 
   init();

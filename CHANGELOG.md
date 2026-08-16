@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.1.0 — 2026-08-16
+
+### Removed
+
+- Fitur **Quick Search** dan **Detailed Analysis** dihapus seluruhnya sesuai kebutuhan: aplikasi kini fokus pada pemrosesan **Excel CIPL** saja.
+- Bagian hasil analisis manual (recommended code, confidence, taxonomy, alternatives, missing information, verification checklist) beserta tombol salin/unduh JSON/print/share/refine dihapus.
+- Histori pencarian lokal beserta pencarian, buka, salin, dan hapus histori dihapus karena hanya relevan untuk analisis manual.
+- Mode payload `manual` pada Pages Function `/api/analyze` dihapus; tersisa `test` dan `batch`.
+- LocalStorage histori `hs_posnew_history_v2` tidak lagi digunakan.
+
+### Added
+
+- Tombol **Unduh template** untuk mengunduh `TEMPLATE_CIPL.xlsx` berisi format kolom yang pasti terbaca sistem (`No`, `Barang`, `Jumlah`, `Satuan`, `Hs Code`).
+- Panduan format Excel langsung di halaman utama: tabel contoh, aturan kolom wajib, perilaku kolom HS Code, dan tips penulisan nama barang.
+- Pesan error deteksi kolom kini mengarahkan pengguna ke tombol template.
+- CSS baru untuk tabel contoh format dan teks screen-reader.
+
+### Changed
+
+- Aset terversi dinaikkan ke `styles-v2.1.0.css` dan `app-v2.1.0.js` sesuai kebijakan cache-busting.
+- Konten hero, meta SEO, dan structured data diperbarui untuk fokus klasifikasi massal CIPL Excel.
+- Alur penggunaan dipersingkat menjadi: unduh template (opsional) → unggah → AI melengkapi → unduh & verifikasi.
+- `404.html` kini memuat `styles-v2.1.0.css`.
+
 ## 2.0.2 — 2026-07-27
 
 ### Fixed

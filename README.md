@@ -1,22 +1,38 @@
 # HS Code Finder Indonesia
 
-Versi: **2.0.2**
+Versi: **2.1.0**
 
-Aplikasi web ringan untuk membantu menemukan kandidat HS Code melalui deskripsi barang dan pemrosesan massal dokumen CIPL Excel. Aplikasi ini menggunakan Groq API dan dapat langsung dideploy ke Cloudflare Pages tanpa build command.
+Aplikasi web ringan untuk mengklasifikasi HS Code secara massal dari dokumen CIPL Excel. Aplikasi ini menggunakan Groq API dan dapat langsung dideploy ke Cloudflare Pages tanpa build command.
 
 > Hasil AI merupakan rekomendasi awal, bukan penetapan resmi kepabeanan. Selalu verifikasi melalui BTKI, INSW, peraturan yang berlaku, atau pihak berwenang.
 
 ## Fitur
 
-- **Quick Search** — analisis dari satu deskripsi barang.
-- **Detailed Analysis** — input bahan, fungsi, cara kerja, penggunaan, komposisi, kondisi, dan catatan.
-- **Excel CIPL** — mendeteksi kolom barang/HS Code, mempertahankan kode yang sudah ada, memakai database lokal dan Google Sheets, lalu mengirim hanya item yang belum ditemukan ke Groq.
-- Hasil terstruktur: rekomendasi kode, confidence, chapter, heading, subheading, alasan ringkas, alternatif, informasi kurang, dan checklist verifikasi.
-- Salin HS Code, salin analisis lengkap, unduh JSON, print/simpan PDF, share, refine, dan new search.
-- Histori lokal yang dapat dicari, dibuka, disalin, dihapus per item, atau dibersihkan seluruhnya.
+- **Excel CIPL** — satu-satunya mode analisis: unggah file `.xlsx`/`.xls`, sistem mendeteksi kolom barang/HS Code, mempertahankan kode yang sudah ada, memakai database lokal dan Google Sheets, lalu mengirim hanya item yang belum ditemukan ke Groq.
+- **Template resmi** — tombol "Unduh template" menyediakan file contoh `TEMPLATE_CIPL.xlsx` agar pengguna tidak salah format.
+- Hasil diproses langsung di browser dan dapat diunduh sebagai `HASIL_CIPL_KCU_BATAM.xlsx`.
 - Loading state, cancel request, timeout, validasi, inline error, toast, dan respons non-JSON yang aman.
 - Aksesibilitas keyboard, focus state, focus trap modal, aria-live, serta dukungan `prefers-reduced-motion`.
 - SEO, manifest, sitemap, robots.txt, halaman 404, structured data, security headers, serta cache-busting aset.
+
+## Format Excel yang benar
+
+Sistem membaca **sheet pertama** dan mencari baris header yang memuat kata `Barang`, `Uraian`, atau `Description`.
+
+| No | Barang | Jumlah | Satuan | Hs Code |
+|----|--------|--------|--------|---------|
+| 1 | Filter udara mesin kendaraan bermotor | 2 | PCS | *(kosong)* |
+| 2 | Baju anak katun | 12 | PCS | *(kosong)* |
+| 3 | Televisi LED 43 inch | 1 | UNIT | *(kosong)* |
+
+Aturan penting:
+
+1. **Kolom `Barang` wajib ada** — header harus memuat kata `Barang`, `Uraian`, atau `Description`. File tanpa kolom ini akan ditolak.
+2. **Kolom `Hs Code` opsional** — bila tidak ada, kolom baru bernama `HS CODE` otomatis dibuat di sisi kanan.
+3. **Kode yang sudah terisi tidak diubah** — sistem hanya melengkapi cell yang kosong.
+4. **Satu baris = satu jenis barang** — jangan menggabungkan beberapa barang dalam satu cell.
+5. **Tulis nama barang sejelas mungkin** — contoh baik: `Filter udara mesin kendaraan bermotor`; contoh buruk: `Sparepart`.
+6. Bila ragu, klik **Unduh template** di halaman utama untuk memperoleh file contoh yang pasti terbaca.
 
 ## Struktur repository
 
@@ -24,8 +40,8 @@ Aplikasi web ringan untuk membantu menemukan kandidat HS Code melalui deskripsi 
 .
 ├── index.html
 ├── assets
-│   ├── styles-v2.0.2.css
-│   └── app-v2.0.2.js
+│   ├── styles-v2.1.0.css
+│   └── app-v2.1.0.js
 ├── favicon-hscode.png
 ├── manifest.webmanifest
 ├── robots.txt
@@ -77,7 +93,7 @@ Bila secret server belum tersedia, user dapat memasukkan key melalui modal onboa
 - Penyimpanan perangkat hanya dilakukan bila checkbox **Ingat di perangkat ini** dipilih.
 - Key ditampilkan dalam bentuk empat karakter terakhir setelah tersimpan.
 - Key dapat diuji, diganti, dan dihapus.
-- Key tidak dimasukkan ke histori, clipboard hasil, file JSON, file Excel, print, URL, atau log aplikasi.
+- Key tidak dimasukkan ke clipboard hasil, file JSON, file Excel, print, URL, atau log aplikasi.
 
 ## Deploy ke Cloudflare Pages
 
@@ -103,7 +119,6 @@ POST /api/analyze
 Mode payload internal:
 
 - `test` — memeriksa key dan ketersediaan model.
-- `manual` — analisis satu barang terstruktur.
 - `batch` — klasifikasi item CIPL dalam beberapa batch.
 
 ## Google Sheets database
@@ -114,7 +129,7 @@ Aplikasi mempertahankan integrasi Google Apps Script lama untuk:
 - menyimpan mapping baru yang diperoleh dari analisis batch;
 - fallback ke database offline jika Google Sheets tidak tersedia.
 
-URL Apps Script dikonfigurasi sekali di `assets/app-v2.0.2.js`. Pastikan deployment Apps Script mengizinkan request dari domain aplikasi dan tidak mengembalikan data sensitif.
+URL Apps Script dikonfigurasi sekali di `assets/app-v2.1.0.js`. Pastikan deployment Apps Script mengizinkan request dari domain aplikasi dan tidak mengembalikan data sensitif.
 
 ## Troubleshooting
 
@@ -124,13 +139,12 @@ URL Apps Script dikonfigurasi sekali di `assets/app-v2.0.2.js`. Pastikan deploym
 - **429 / rate limit** — tunggu dan coba kembali; aplikasi juga memiliki pembatasan sederhana per IP pada Pages Function.
 - **Model unavailable** — periksa status/model Groq dan konfigurasi `MODEL` di `functions/api/analyze.js`.
 - **Network error** — periksa koneksi, Content Security Policy, dan izin Apps Script.
-- **Kolom Excel tidak ditemukan** — pastikan header memuat `Barang`, `Uraian`, atau `Description`. Kolom HS Code akan dibuat bila belum ada.
+- **Kolom Excel tidak ditemukan** — pastikan header memuat `Barang`, `Uraian`, atau `Description`. Kolom HS Code akan dibuat bila belum ada. Gunakan tombol **Unduh template** bila ragu.
 - **Library Excel gagal dimuat** — periksa akses ke CDN resmi SheetJS dan CSP di middleware.
 
 ## Privasi
 
-- Deskripsi barang diproses melalui Groq hanya saat user menjalankan analisis.
-- Histori berada di `localStorage` perangkat user.
-- User dapat menghapus histori dan key dari tombol **Hapus data lokal**.
+- Nama barang diproses melalui Groq hanya saat user menjalankan analisis.
+- User dapat menghapus key dari tombol **Hapus data lokal**.
 - Tidak ada analytics baru.
 - Tidak ada API key atau secret di repository ini.
