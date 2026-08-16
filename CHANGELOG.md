@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.1 — 2026-08-16
+
+### Fixed
+
+- Tombol "Unduh template" sebelumnya mengandalkan pustaka SheetJS yang baru dimuat saat file Excel pertama diunggah, sehingga klik pertama sering gagal dengan pesan "Template belum siap".
+- Template kini menjadi file statis `TEMPLATE_CIPL.xlsx` di root yang diunduh langsung melalui link download — selalu siap, bahkan sebelum pustaka Excel termuat.
+- Fungsi `downloadTemplate` pada `app-v2.1.0.js` dihapus karena tidak lagi diperlukan.
+
 ## 2.1.0 — 2026-08-16
 
 ### Removed

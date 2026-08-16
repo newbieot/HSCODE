@@ -515,25 +515,6 @@
     toast('File Excel diunduh', 'Hasil tetap mempertahankan worksheet utama dari file sumber.');
   }
 
-  function downloadTemplate() {
-    if (!window.XLSX) {
-      toast('Template belum siap', 'Pustaka Excel masih dimuat, coba beberapa saat lagi.', 'error');
-      return;
-    }
-    const data = [
-      ['No', 'Barang', 'Jumlah', 'Satuan', 'Hs Code'],
-      ['1', 'Filter udara mesin kendaraan bermotor', 2, 'PCS', ''],
-      ['2', 'Baju anak katun', 12, 'PCS', ''],
-      ['3', 'Televisi LED 43 inch', 1, 'UNIT', '']
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    ws['!cols'] = [{ wch: 6 }, { wch: 42 }, { wch: 9 }, { wch: 10 }, { wch: 14 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'CIPL');
-    XLSX.writeFile(wb, 'TEMPLATE_CIPL.xlsx');
-    toast('Template diunduh', 'Lengkapi kolom "Barang", lalu unggah kembali untuk diproses.');
-  }
-
   async function loadCloudDatabase() {
     updateDatabaseStatus('Menghubungkan…');
     const controller = new AbortController();
@@ -578,7 +559,6 @@
     }));
     els.dropZone.addEventListener('drop', event => handleSelectedFile(event.dataTransfer.files[0]));
     $('#removeFileButton').addEventListener('click', removeSelectedFile);
-    $('#templateButton').addEventListener('click', downloadTemplate);
 
     $('#toggleGuideButton').addEventListener('click', event => {
       const button = event.currentTarget;

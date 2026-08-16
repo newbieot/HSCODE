@@ -9,7 +9,7 @@ Aplikasi web ringan untuk mengklasifikasi HS Code secara massal dari dokumen CIP
 ## Fitur
 
 - **Excel CIPL** — satu-satunya mode analisis: unggah file `.xlsx`/`.xls`, sistem mendeteksi kolom barang/HS Code, mempertahankan kode yang sudah ada, memakai database lokal dan Google Sheets, lalu mengirim hanya item yang belum ditemukan ke Groq.
-- **Template resmi** — tombol "Unduh template" menyediakan file contoh `TEMPLATE_CIPL.xlsx` agar pengguna tidak salah format.
+- **Template resmi** — tombol "Unduh template" mengunduh file statis `TEMPLATE_CIPL.xlsx` langsung dari server, tanpa menunggu pustaka Excel termuat, agar pengguna tidak salah format.
 - Hasil diproses langsung di browser dan dapat diunduh sebagai `HASIL_CIPL_KCU_BATAM.xlsx`.
 - Loading state, cancel request, timeout, validasi, inline error, toast, dan respons non-JSON yang aman.
 - Aksesibilitas keyboard, focus state, focus trap modal, aria-live, serta dukungan `prefers-reduced-motion`.
@@ -42,6 +42,7 @@ Aturan penting:
 ├── assets
 │   ├── styles-v2.1.0.css
 │   └── app-v2.1.0.js
+├── TEMPLATE_CIPL.xlsx
 ├── favicon-hscode.png
 ├── manifest.webmanifest
 ├── robots.txt
